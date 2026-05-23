@@ -223,6 +223,24 @@ struct MarkdownWebView: NSViewRepresentable {
         del { color: var(--subtle); }
         mark.find-hl { background: rgba(255, 230, 0, 0.45); color: inherit; padding: 1px 0; border-radius: 2px; }
         mark.find-hl.find-cur { background: rgba(255, 150, 50, 0.7); }
+        @media print {
+            :root, :root:not([data-theme="light"]), :root[data-theme="dark"] {
+                --text: #000 !important;
+                --bg: #fff !important;
+                --code-bg: #f5f5f7 !important;
+                --border: #ccc !important;
+                --link: #000 !important;
+                --subtle: #555 !important;
+            }
+            body {
+                padding: 0;
+                max-width: none;
+                color: #000 !important;
+                background: #fff !important;
+                -webkit-print-color-adjust: exact;
+            }
+            mark.find-hl { background: none !important; }
+        }
         </style>
         <script>
         var findMatches = [];

@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import WebKit
 import Markdown
 import UniformTypeIdentifiers
 
@@ -134,6 +135,12 @@ struct MDViewApp: App {
                         }
                     }
                 }
+            }
+            CommandGroup(replacing: .printItem) {
+                Button("Print\u{2026}") {
+                    appDelegate.printKeyWindow()
+                }
+                .keyboardShortcut("p")
             }
             CommandGroup(after: .pasteboard) {
                 Divider()
@@ -304,6 +311,40 @@ class AppState: ObservableObject {
     func narrowContent() { maxWidth = max(maxWidth - 80, 480) }
 }
 
+// MARK: - PDF Print View
+
+class PDFPrintView: NSView {
+    private let document: CGPDFDocument
+
+    init?(document: CGPDFDocument) {
+        guard document.numberOfPages > 0,
+              let firstPage = document.page(at: 1) else { return nil }
+        self.document = document
+        super.init(frame: firstPage.getBoxRect(.mediaBox))
+    }
+
+    required init?(coder: NSCoder) { fatalError() }
+
+    override func knowsPageRange(_ range: NSRangePointer) -> Bool {
+        range.pointee = NSRange(location: 1, length: document.numberOfPages)
+        return true
+    }
+
+    override func rectForPage(_ pageNum: Int) -> NSRect {
+        guard let page = document.page(at: pageNum) else {
+            return NSRect(x: 0, y: 0, width: 612, height: 792)
+        }
+        return page.getBoxRect(.mediaBox)
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        guard let ctx = NSGraphicsContext.current?.cgContext,
+              let op = NSPrintOperation.current,
+              let page = document.page(at: op.currentPage) else { return }
+        ctx.drawPDFPage(page)
+    }
+}
+
 // MARK: - App Delegate
 
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
@@ -381,6 +422,150 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     func documentForKeyWindow() -> DocumentState? {
         guard let window = NSApp.keyWindow else { return nil }
         return windowDocuments[ObjectIdentifier(window)]
+    }
+
+    func printKeyWindow() {
+        guard let window = NSApp.keyWindow,
+              let webView = findWebView(in: window.contentView) else { return }
+
+        let appState = AppState.shared
+        let savedMaxWidth = Int(appState.maxWidth)
+        let savedAppearance = appState.appearance
+        let printWidth: CGFloat = 540
+        let pageHeight: CGFloat = 720
+
+        let narrowJS = """
+            document.body.style.maxWidth = '\(Int(printWidth))px';
+            document.body.style.margin = '0';
+            document.body.style.padding = '0';
+            document.documentElement.style.setProperty('--max-width', '\(Int(printWidth))px');
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.documentElement.style.setProperty('--text', '#000');
+            document.documentElement.style.setProperty('--bg', '#fff');
+            document.documentElement.style.setProperty('--code-bg', '#f5f5f7');
+            document.documentElement.style.setProperty('--border', '#ccc');
+            document.documentElement.style.setProperty('--link', '#000');
+            document.documentElement.style.setProperty('--subtle', '#555');
+        """
+
+        webView.evaluateJavaScript(narrowJS) { _, _ in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                let breakJS = """
+                    (function() {
+                        var ph = \(pageHeight);
+                        var els = document.body.children;
+                        var breaks = [];
+                        var next = ph;
+                        var total = document.body.scrollHeight;
+                        for (var i = 0; i < els.length; i++) {
+                            var top = els[i].getBoundingClientRect().top + window.scrollY;
+                            if (top >= next && top > 0) {
+                                breaks.push(Math.floor(top));
+                                next = top + ph;
+                            }
+                        }
+                        return JSON.stringify({b: breaks, h: Math.ceil(total)});
+                    })()
+                """
+
+                webView.evaluateJavaScript(breakJS) { result, _ in
+                    let restoreJS = """
+                        document.body.style.maxWidth = '';
+                        document.body.style.margin = '';
+                        document.body.style.padding = '';
+                        document.documentElement.style.setProperty('--max-width', '\(savedMaxWidth)px');
+                        \(savedAppearance == .dark ? "document.documentElement.setAttribute('data-theme','dark');" : savedAppearance == .light ? "document.documentElement.setAttribute('data-theme','light');" : "document.documentElement.removeAttribute('data-theme');")
+                        document.documentElement.style.removeProperty('--text');
+                        document.documentElement.style.removeProperty('--bg');
+                        document.documentElement.style.removeProperty('--code-bg');
+                        document.documentElement.style.removeProperty('--border');
+                        document.documentElement.style.removeProperty('--link');
+                        document.documentElement.style.removeProperty('--subtle');
+                    """
+
+                    guard let jsonStr = result as? String,
+                          let jsonData = jsonStr.data(using: .utf8),
+                          let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
+                          let rawBreaks = json["b"] as? [Double],
+                          let totalH = json["h"] as? Double else {
+                        webView.evaluateJavaScript(restoreJS)
+                        return
+                    }
+
+                    let totalHeight = CGFloat(totalH)
+                    let breakPoints = rawBreaks.map { CGFloat($0) }
+
+                    let pdfConfig = WKPDFConfiguration()
+                    pdfConfig.rect = CGRect(x: 0, y: 0, width: printWidth, height: totalHeight)
+
+                    webView.createPDF(configuration: pdfConfig) { pdfResult in
+                        DispatchQueue.main.async {
+                            webView.evaluateJavaScript(restoreJS)
+
+                            guard case .success(let pdfData) = pdfResult,
+                                  let provider = CGDataProvider(data: pdfData as CFData),
+                                  let srcDoc = CGPDFDocument(provider),
+                                  let srcPage = srcDoc.page(at: 1) else { return }
+
+                            let allBreaks = [CGFloat(0)] + breakPoints + [totalHeight]
+                            var segments: [(CGFloat, CGFloat)] = []
+                            for i in 0..<(allBreaks.count - 1) {
+                                var yStart = allBreaks[i]
+                                let yEnd = min(allBreaks[i + 1], totalHeight)
+                                while yEnd - yStart > pageHeight {
+                                    segments.append((yStart, yStart + pageHeight))
+                                    yStart += pageHeight
+                                }
+                                if yEnd > yStart {
+                                    segments.append((yStart, yEnd))
+                                }
+                            }
+
+                            let pageData = NSMutableData()
+                            guard let consumer = CGDataConsumer(data: pageData) else { return }
+                            var letterBox = CGRect(x: 0, y: 0, width: 612, height: 792)
+                            guard let ctx = CGContext(consumer: consumer, mediaBox: &letterBox, nil) else { return }
+
+                            for (yStart, _) in segments {
+                                ctx.beginPage(mediaBox: &letterBox)
+                                ctx.saveGState()
+                                ctx.clip(to: CGRect(x: 36, y: 36, width: 540, height: 720))
+                                ctx.translateBy(x: 36, y: 756 - totalHeight + yStart)
+                                ctx.drawPDFPage(srcPage)
+                                ctx.restoreGState()
+                                ctx.endPage()
+                            }
+                            ctx.closePDF()
+
+                            guard let pagProvider = CGDataProvider(data: pageData),
+                                  let pagDoc = CGPDFDocument(pagProvider),
+                                  let printView = PDFPrintView(document: pagDoc) else { return }
+
+                            let printInfo = NSPrintInfo.shared.copy() as! NSPrintInfo
+                            printInfo.topMargin = 0
+                            printInfo.bottomMargin = 0
+                            printInfo.leftMargin = 0
+                            printInfo.rightMargin = 0
+                            printInfo.horizontalPagination = .clip
+                            printInfo.verticalPagination = .clip
+                            let op = NSPrintOperation(view: printView, printInfo: printInfo)
+                            op.showsPrintPanel = true
+                            op.showsProgressPanel = true
+                            op.run()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func findWebView(in view: NSView?) -> WKWebView? {
+        guard let view = view else { return nil }
+        if let wk = view as? WKWebView { return wk }
+        for sub in view.subviews {
+            if let found = findWebView(in: sub) { return found }
+        }
+        return nil
     }
 
     func findInKeyWindow() {
