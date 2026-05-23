@@ -2,6 +2,8 @@
 
 A lightweight Markdown viewer for macOS. Opens `.md`, `.markdown`, and `.txt` files in a clean, readable window with no editing — just reading.
 
+![MDView screenshot](screenshot.png)
+
 ## Features
 
 - Open files via File > Open, drag-and-drop, or double-click from Finder
