@@ -39,6 +39,7 @@ struct MarkdownWebView: NSViewRepresentable {
                 context.coordinator.pendingFindQuery = cur.findQuery
                 context.coordinator.pendingFindIndex = cur.findMatchIndex
             }
+            context.coordinator.isLoaded = false
             webView.loadHTMLString(buildPage(), baseURL: baseURL)
             return
         }
@@ -69,10 +70,19 @@ struct MarkdownWebView: NSViewRepresentable {
 
         if prev.findQuery != cur.findQuery {
             if cur.findQuery.isEmpty {
-                webView.evaluateJavaScript("clearFind()")
+                context.coordinator.pendingFindQuery = nil
+                if context.coordinator.isLoaded {
+                    webView.evaluateJavaScript("clearFind()")
+                }
                 DispatchQueue.main.async {
                     context.coordinator.onFindResults?(0)
                 }
+            } else if !context.coordinator.isLoaded {
+                // Page is still loading (e.g. a large file). Defer the search
+                // until didFinish so it doesn't run against an empty/partial DOM
+                // and silently report "No matches".
+                context.coordinator.pendingFindQuery = cur.findQuery
+                context.coordinator.pendingFindIndex = cur.findMatchIndex
             } else {
                 let escaped = cur.findQuery
                     .replacingOccurrences(of: "\\", with: "\\\\")
@@ -90,7 +100,7 @@ struct MarkdownWebView: NSViewRepresentable {
                     }
                 }
             }
-        } else if prev.findMatchIndex != cur.findMatchIndex && !cur.findQuery.isEmpty {
+        } else if prev.findMatchIndex != cur.findMatchIndex && !cur.findQuery.isEmpty && context.coordinator.isLoaded {
             webView.evaluateJavaScript("scrollToMatch(\(cur.findMatchIndex))")
         }
     }
@@ -244,37 +254,52 @@ struct MarkdownWebView: NSViewRepresentable {
         </style>
         <script>
         var findMatches = [];
+        // Cap on highlighted matches. Large enough to cover any realistic word
+        // search even in a long document, but bounded so a pathological query
+        // (e.g. a single common letter) can't freeze the renderer wrapping
+        // hundreds of thousands of nodes.
+        var FIND_CAP = 10000;
         function clearFind() {
-            document.querySelectorAll('mark.find-hl').forEach(function(m) {
-                m.replaceWith(m.textContent);
-            });
-            document.body.normalize();
+            var marks = document.querySelectorAll('mark.find-hl');
+            for (var i = 0; i < marks.length; i++) {
+                marks[i].replaceWith(marks[i].textContent);
+            }
+            if (marks.length) document.body.normalize();
             findMatches = [];
         }
         function performFind(q) {
             clearFind();
             if (!q) return 0;
+            var lower = q.toLowerCase();
+            var qlen = q.length;
             var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
             var nodes = [];
             while (walker.nextNode()) nodes.push(walker.currentNode);
-            var lower = q.toLowerCase();
-            var hits = [];
-            for (var i = 0; i < nodes.length; i++) {
-                var t = nodes[i].textContent.toLowerCase();
-                var idx = 0;
-                while ((idx = t.indexOf(lower, idx)) !== -1) {
-                    hits.push({node: nodes[i], pos: idx, len: q.length});
-                    idx += lower.length;
+            var total = 0;
+            // Rebuild each matching text node once via a fragment instead of
+            // mutating the live DOM per match (the old per-match Range +
+            // surroundContents triggered O(matches) layout invalidations and
+            // could pin the renderer for minutes on large documents).
+            for (var i = 0; i < nodes.length && total < FIND_CAP; i++) {
+                var node = nodes[i];
+                if (!node.parentNode) continue;
+                var text = node.textContent;
+                var hay = text.toLowerCase();
+                if (hay.indexOf(lower) === -1) continue;
+                var frag = document.createDocumentFragment();
+                var last = 0;
+                var idx;
+                while (total < FIND_CAP && (idx = hay.indexOf(lower, last)) !== -1) {
+                    if (idx > last) frag.appendChild(document.createTextNode(text.slice(last, idx)));
+                    var m = document.createElement('mark');
+                    m.className = 'find-hl';
+                    m.appendChild(document.createTextNode(text.slice(idx, idx + qlen)));
+                    frag.appendChild(m);
+                    last = idx + qlen;
+                    total++;
                 }
-            }
-            for (var i = hits.length - 1; i >= 0; i--) {
-                var h = hits[i];
-                var r = document.createRange();
-                r.setStart(h.node, h.pos);
-                r.setEnd(h.node, h.pos + h.len);
-                var m = document.createElement('mark');
-                m.className = 'find-hl';
-                r.surroundContents(m);
+                if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+                node.parentNode.replaceChild(frag, node);
             }
             findMatches = document.querySelectorAll('mark.find-hl');
             return findMatches.length;
@@ -309,8 +334,10 @@ struct MarkdownWebView: NSViewRepresentable {
         var onFindResults: ((Int) -> Void)?
         var pendingFindQuery: String?
         var pendingFindIndex: Int = 0
+        var isLoaded = false
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+            isLoaded = true
             guard let query = pendingFindQuery, !query.isEmpty else { return }
             pendingFindQuery = nil
             let escaped = query
