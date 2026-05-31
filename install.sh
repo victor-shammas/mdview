@@ -40,9 +40,9 @@ cat > "$CONTENTS/Info.plist" << 'PLIST'
     <key>CFBundleIdentifier</key>
     <string>com.mdview.app</string>
     <key>CFBundleVersion</key>
-    <string>1.0</string>
+    <string>1.1.1</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.0</string>
+    <string>1.1.1</string>
     <key>CFBundleExecutable</key>
     <string>mdview</string>
     <key>CFBundleIconFile</key>
