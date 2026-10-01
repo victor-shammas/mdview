@@ -11,22 +11,24 @@ CONTENTS="$APP/Contents"
 MACOS="$CONTENTS/MacOS"
 RESOURCES="$CONTENTS/Resources"
 
-echo "Building arm64..."
-swift build -c release --arch arm64
-echo "Building x86_64..."
-swift build -c release --arch x86_64
+# Build each architecture and copy it out right away: depending on the
+# toolchain, both may land in the same output folder.
+TMP="$(mktemp -d)"
+trap 'rm -rf "$TMP"' EXIT
+for ARCH in arm64 x86_64; do
+    echo "Building $ARCH..."
+    swift build -c release --arch "$ARCH"
+    cp "$(swift build -c release --arch "$ARCH" --show-bin-path)/mdview" "$TMP/mdview-$ARCH"
+done
 
 echo "Creating universal binary..."
-lipo -create \
-    .build/arm64-apple-macosx/release/mdview \
-    .build/x86_64-apple-macosx/release/mdview \
-    -output /tmp/mdview-universal
+lipo -create "$TMP/mdview-arm64" "$TMP/mdview-x86_64" -output "$TMP/mdview"
 
 echo "Creating app bundle..."
 rm -rf "$APP"
 mkdir -p "$MACOS" "$RESOURCES"
 
-mv /tmp/mdview-universal "$MACOS/$NAME"
+cp "$TMP/mdview" "$MACOS/$NAME"
 
 if [ -f AppIcon.icns ]; then
     cp AppIcon.icns "$RESOURCES/AppIcon.icns"

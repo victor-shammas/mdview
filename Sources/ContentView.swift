@@ -170,11 +170,9 @@ struct ContentView: View {
         .onDrop(of: [.fileURL], isTargeted: nil) { providers in
             guard let provider = providers.first else { return false }
             _ = provider.loadObject(ofClass: NSURL.self) { url, _ in
-                guard let url = url as? URL else { return }
-                let ext = url.pathExtension.lowercased()
-                guard ext == "md" || ext == "markdown" || ext == "txt" else { return }
+                guard let url = url as? URL, MarkdownFile.canOpen(url) else { return }
                 DispatchQueue.main.async {
-                    self.document.openFile(at: url)
+                    self.document.open(url)
                 }
             }
             return true

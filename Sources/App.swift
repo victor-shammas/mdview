@@ -66,6 +66,7 @@ class DocumentState: ObservableObject {
     /// Set when images failed to load because the sandbox blocks their folder.
     @Published var folderNeedingAccess: URL?
 
+    weak var window: NSWindow?
     private var accessedURL: URL?
 
     deinit {
@@ -94,13 +95,39 @@ class DocumentState: ObservableObject {
         findCurrentMatch = (findCurrentMatch - 1 + findMatchCount) % findMatchCount
     }
 
-    func openFile(at url: URL) {
+    /// Opens `url` in this window, showing an alert if it can't be read.
+    @discardableResult
+    func open(_ url: URL) -> Bool {
+        do {
+            try openFile(at: url)
+            return true
+        } catch {
+            Self.presentError(error, opening: url, in: window)
+            return false
+        }
+    }
+
+    static func presentError(_ error: Error, opening url: URL, in window: NSWindow?) {
+        let alert = NSAlert()
+        alert.messageText = "\u{201C}\(url.lastPathComponent)\u{201D} couldn\u{2019}t be opened."
+        alert.informativeText = (error as NSError).localizedFailureReason ?? error.localizedDescription
+        if let window {
+            alert.beginSheetModal(for: window)
+        } else {
+            alert.runModal()
+        }
+    }
+
+    func openFile(at url: URL) throws {
         // URLs resolved from Recently Read bookmarks are only readable inside
         // the sandbox while access is claimed. Hold it for the window's lifetime.
         let accessing = url.startAccessingSecurityScopedResource()
-        guard let content = try? String(contentsOf: url, encoding: .utf8) else {
+        let content: String
+        do {
+            content = try MarkdownFile.read(url)
+        } catch {
             if accessing { url.stopAccessingSecurityScopedResource() }
-            return
+            throw error
         }
         if accessedURL != url {
             accessedURL?.stopAccessingSecurityScopedResource()
@@ -119,14 +146,11 @@ class DocumentState: ObservableObject {
         folderNeedingAccess = nil
         contentVersion += 1
         AppState.shared.addToRecentFiles(url)
-
-        DispatchQueue.main.async {
-            NSApp.keyWindow?.title = url.lastPathComponent
-        }
+        window?.title = url.lastPathComponent
     }
 
     func reload() {
-        if let fileURL { openFile(at: fileURL) }
+        if let fileURL { try? openFile(at: fileURL) }
     }
 
     /// Called when an image read was denied by the sandbox. Suggests the
@@ -241,11 +265,7 @@ struct MDViewApp: App {
 
     private func openViaPanel() {
         let panel = NSOpenPanel()
-        panel.allowedContentTypes = [
-            UTType(filenameExtension: "md"),
-            UTType(filenameExtension: "markdown"),
-            UTType(filenameExtension: "txt"),
-        ].compactMap { $0 }
+        panel.allowedContentTypes = MarkdownFile.extensions.compactMap { UTType(filenameExtension: $0) }
         panel.allowsMultipleSelection = false
         panel.canChooseDirectories = false
 
@@ -255,7 +275,7 @@ struct MDViewApp: App {
     }
 
     private func openURL(_ url: URL) {
-        appDelegate.openInNewWindow(url)
+        appDelegate.open(url)
     }
 }
 
@@ -356,6 +376,11 @@ class AppState: ObservableObject {
         defaults.set(recentFiles.map(\.bookmark), forKey: "recentFiles")
     }
 
+    func removeFromRecentFiles(_ url: URL) {
+        recentFiles.removeAll { $0.url.path == url.path }
+        defaults.set(recentFiles.map(\.bookmark), forKey: "recentFiles")
+    }
+
     func clearRecentFiles() {
         recentFiles = []
         defaults.removeObject(forKey: "recentFiles")
@@ -440,6 +465,7 @@ class PDFPrintView: NSView {
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var openWindows: [NSWindow] = []
     private var windowDocuments: [ObjectIdentifier: DocumentState] = [:]
+    private var cascadePoint = NSPoint.zero
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
@@ -455,6 +481,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             }
             return event
         }
+
+        // Files opened from Finder arrive before this runs. Otherwise show an
+        // empty window to drop a file on, rather than just a menu bar.
+        DispatchQueue.main.async { [weak self] in
+            guard let self, self.openWindows.isEmpty else { return }
+            self.makeWindow(for: DocumentState())
+        }
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
@@ -462,22 +495,35 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func application(_ application: NSApplication, open urls: [URL]) {
-        // Filter valid files
-        let validURLs = urls.filter {
-            let ext = $0.pathExtension.lowercased()
-            return ["md", "markdown", "mdown", "mkd", "txt"].contains(ext)
-        }
-    
-        // Just open everything as a new window immediately
-        for url in validURLs {
-            openInNewWindow(url)
+        for url in urls where MarkdownFile.canOpen(url) {
+            open(url)
         }
     }
 
-    func openInNewWindow(_ url: URL) {
-        let document = DocumentState()
-        document.openFile(at: url)
+    /// Opens `url` in an empty window if there is one, otherwise a new window.
+    func open(_ url: URL) {
+        if let window = openWindows.first(where: { windowDocuments[ObjectIdentifier($0)]?.fileURL == nil }),
+           let document = windowDocuments[ObjectIdentifier(window)] {
+            if document.open(url) {
+                window.makeKeyAndOrderFront(nil)
+            }
+            return
+        }
 
+        let document = DocumentState()
+        do {
+            try document.openFile(at: url)
+        } catch {
+            if (error as? CocoaError)?.code == .fileReadNoSuchFile {
+                AppState.shared.removeFromRecentFiles(url)
+            }
+            DocumentState.presentError(error, opening: url, in: nil)
+            return
+        }
+        makeWindow(for: document)
+    }
+
+    private func makeWindow(for document: DocumentState) {
         let rootView = ContentView()
             .environmentObject(AppState.shared)
             .environmentObject(document)
@@ -493,13 +539,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.isReleasedWhenClosed = false
         window.delegate = self
         window.contentView = NSHostingView(rootView: rootView)
-        window.title = url.lastPathComponent
+        window.title = document.fileName ?? (Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "MDView")
+        document.window = window
 
-        window.setFrame(NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 900, height: 700), display: true)
+        // Reuse the last size the user chose; otherwise a reading-width window
+        // most of the screen tall. Later windows cascade from the first.
+        let visible = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1280, height: 800)
+        let saved = NSSizeFromString(UserDefaults.standard.string(forKey: "windowSize") ?? "")
+        let size = saved.width >= 500 && saved.height >= 400 ? saved : NSSize(width: 960, height: visible.height * 0.9)
+        window.setContentSize(NSSize(width: min(size.width, visible.width), height: min(size.height, visible.height)))
+        if openWindows.isEmpty {
+            window.center()
+            cascadePoint = .zero
+        }
+        cascadePoint = window.cascadeTopLeft(from: cascadePoint)
 
         windowDocuments[ObjectIdentifier(window)] = document
         openWindows.append(window)
         window.makeKeyAndOrderFront(nil)
+    }
+
+    func windowDidEndLiveResize(_ notification: Notification) {
+        guard let window = notification.object as? NSWindow else { return }
+        let size = window.contentRect(forFrameRect: window.frame).size
+        UserDefaults.standard.set(NSStringFromSize(size), forKey: "windowSize")
     }
 
     func windowWillClose(_ notification: Notification) {
@@ -671,6 +734,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-        return false
+        // Clicking the Dock icon with no windows open shows an empty one;
+        // with only minimized windows, AppKit restores one as usual.
+        if openWindows.isEmpty {
+            makeWindow(for: DocumentState())
+            return false
+        }
+        return true
     }
 }
