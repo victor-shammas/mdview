@@ -22,6 +22,9 @@ final class PrintRenderer: NSObject, WKNavigationDelegate {
     private static let printStyle = """
         <style>
         html, body { transition: none !important; }
+        /* The hidden web view has no window, so it would get a classic
+           scrollbar that narrows the text column. */
+        html { overflow: hidden; }
         body { max-width: none !important; margin: 0 !important; padding: 0 !important; }
         pre { white-space: pre-wrap; overflow-wrap: anywhere; }
         :root {
@@ -205,28 +208,20 @@ final class PrintRenderer: NSObject, WKNavigationDelegate {
         return slices
     }
 
-    /// WebKit caps a captured PDF page at 14,400 points (the PDF page size
-    /// limit) and anything longer comes back cut off, so capture runs of
-    /// whole slices that each stay under it.
+    /// Captures each slice as its own PDF page. Capturing larger runs and
+    /// clipping would leave the neighbouring lines' text hidden in the page
+    /// margins, where PDF search and copy still find it (and WebKit cuts a
+    /// single capture off at 14,400 points, the PDF page size limit).
     private func capture(slices: [PrintSlice]) {
-        var chunks: [[PrintSlice]] = []
-        for slice in slices {
-            if let first = chunks.last?.first, slice.end - first.start <= 14_000 {
-                chunks[chunks.count - 1].append(slice)
-            } else {
-                chunks.append([slice])
-            }
-        }
-
-        var captures: [(document: CGPDFDocument, slices: [PrintSlice])] = []
-        func captureNextChunk() {
-            guard captures.count < chunks.count else {
+        var captures: [(document: CGPDFDocument, slice: PrintSlice)] = []
+        func captureNextSlice() {
+            guard captures.count < slices.count else {
                 finish(compose(captures))
                 return
             }
-            let chunk = chunks[captures.count]
+            let slice = slices[captures.count]
             let config = WKPDFConfiguration()
-            config.rect = CGRect(x: 0, y: chunk[0].start, width: printWidth, height: chunk[chunk.count - 1].end - chunk[0].start)
+            config.rect = CGRect(x: 0, y: slice.start, width: printWidth, height: slice.end - slice.start)
             webView.createPDF(configuration: config) { [weak self] result in
                 DispatchQueue.main.async {
                     guard let self else { return }
@@ -237,16 +232,16 @@ final class PrintRenderer: NSObject, WKNavigationDelegate {
                         self.finish(nil)
                         return
                     }
-                    captures.append((document, chunk))
-                    captureNextChunk()
+                    captures.append((document, slice))
+                    captureNextSlice()
                 }
             }
         }
-        captureNextChunk()
+        captureNextSlice()
     }
 
     /// Lays the captured slices out one per sheet, inside the margins.
-    private func compose(_ captures: [(document: CGPDFDocument, slices: [PrintSlice])]) -> Data? {
+    private func compose(_ captures: [(document: CGPDFDocument, slice: PrintSlice)]) -> Data? {
         let pageData = NSMutableData()
         guard let consumer = CGDataConsumer(data: pageData) else { return nil }
         var pageBox = CGRect(origin: .zero, size: paper)
@@ -254,23 +249,15 @@ final class PrintRenderer: NSObject, WKNavigationDelegate {
         guard let ctx = CGContext(consumer: consumer, mediaBox: &pageBox, info) else { return nil }
         let anchorIDs = Set(links.anchors.map(\.id))
 
-        for capture in captures {
-            guard let source = capture.document.page(at: 1) else { continue }
-            let sourceHeight = source.getBoxRect(.mediaBox).height
-            let sourceTop = capture.slices[0].start
-            for slice in capture.slices {
-                ctx.beginPage(mediaBox: &pageBox)
-                ctx.saveGState()
-                // Show only this page's slice, so the start of the next one
-                // doesn't peek in below a short page.
-                let sliceHeight = slice.end - slice.start
-                ctx.clip(to: CGRect(x: margin, y: paper.height - margin - sliceHeight, width: printWidth, height: sliceHeight))
-                ctx.translateBy(x: margin, y: paper.height - margin - sourceHeight + (slice.start - sourceTop))
-                ctx.drawPDFPage(source)
-                ctx.restoreGState()
-                addLinks(to: ctx, for: slice, anchorIDs: anchorIDs)
-                ctx.endPage()
-            }
+        for (document, slice) in captures {
+            guard let source = document.page(at: 1) else { continue }
+            ctx.beginPage(mediaBox: &pageBox)
+            ctx.saveGState()
+            ctx.translateBy(x: margin, y: paper.height - margin - source.getBoxRect(.mediaBox).height)
+            ctx.drawPDFPage(source)
+            ctx.restoreGState()
+            addLinks(to: ctx, for: slice, anchorIDs: anchorIDs)
+            ctx.endPage()
         }
         ctx.closePDF()
         return pageData as Data
