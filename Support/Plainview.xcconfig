@@ -7,9 +7,7 @@ MARKETING_VERSION = 1.2.0
 CURRENT_PROJECT_VERSION = 1
 MACOSX_DEPLOYMENT_TARGET = 14.0
 
-// Signing. Until there is an Apple Developer team, builds are signed to run
-// locally only. Then set DEVELOPMENT_TEAM to the Team ID (not a secret) and
-// delete the CODE_SIGN_IDENTITY line so Xcode manages certificates.
+// Signing. Xcode manages certificates and profiles for this team. The Team ID
+// is not a secret; certificates and keys never go in this repo.
 CODE_SIGN_STYLE = Automatic
-DEVELOPMENT_TEAM =
-CODE_SIGN_IDENTITY = -
+DEVELOPMENT_TEAM = JPP8RN6BJB
