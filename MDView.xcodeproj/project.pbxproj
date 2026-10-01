@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		03DF703693129B9A8E7524F5 /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = C09DE6CF2307485AE0961D73 /* Markdown */; };
 		2F69FB3ED5FF43A735060F27 /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = E994CA2028E9D9FBB544C395 /* Markdown */; };
+		C4F2D3E5B6A71829304B5C6D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B3E1C2D4A5F60718293A4B5C /* PrivacyInfo.xcprivacy */; };
 		3ACFE68C3DAA4CB9C9F12A8B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4135D1734BE9E88018EA134C /* Assets.xcassets */; };
 		A7508A301357F41D88C1BB18 /* MDViewQuickLook.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C6DCCF70338566B6EC152F38 /* MDViewQuickLook.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
@@ -41,6 +42,7 @@
 		1011C124ABBA8BE9C0AA2AC2 /* MDView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MDView.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4135D1734BE9E88018EA134C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9CF75AC063ABF2338945726C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		B3E1C2D4A5F60718293A4B5C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		C6DCCF70338566B6EC152F38 /* MDViewQuickLook.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MDViewQuickLook.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		E1045356A0140B64FF090335 /* MDView.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MDView.entitlements; sourceTree = "<group>"; };
 		F8391DA3F618FB1CB78F3D79 /* MDView.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MDView.xcconfig; sourceTree = "<group>"; };
@@ -131,6 +133,7 @@
 				9CF75AC063ABF2338945726C /* Info.plist */,
 				E1045356A0140B64FF090335 /* MDView.entitlements */,
 				F8391DA3F618FB1CB78F3D79 /* MDView.xcconfig */,
+				B3E1C2D4A5F60718293A4B5C /* PrivacyInfo.xcprivacy */,
 			);
 			path = Support;
 			sourceTree = "<group>";
@@ -233,6 +236,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3ACFE68C3DAA4CB9C9F12A8B /* Assets.xcassets in Resources */,
+				C4F2D3E5B6A71829304B5C6D /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
