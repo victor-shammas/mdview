@@ -479,18 +479,13 @@ class PDFPrintView: NSView {
     }
 }
 
-/// A vertical slice of the laid-out document that becomes one printed page.
-struct PrintSlice {
-    let start: CGFloat
-    let end: CGFloat
-}
-
 // MARK: - App Delegate
 
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     private var openWindows: [NSWindow] = []
     private var windowDocuments: [ObjectIdentifier: DocumentState] = [:]
     private var cascadePoint = NSPoint.zero
+    private var printRenderer: PrintRenderer?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
@@ -607,231 +602,31 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     private func print(_ window: NSWindow) {
-        guard let webView = findWebView(in: window.contentView) else { return }
+        guard printRenderer == nil,
+              let document = windowDocuments[ObjectIdentifier(window)],
+              let html = document.renderedHTML else { return }
 
-        let appState = AppState.shared
-        let savedMaxWidth = Int(appState.maxWidth)
-        let savedAppearance = appState.appearance
-        // Lay pages out for the paper chosen in Page Setup (A4, Letter, ...)
-        // with half-inch margins.
-        let paper = NSPrintInfo.shared.paperSize
-        let margin: CGFloat = 36
-        let printWidth = (paper.width - 2 * margin).rounded()
-        let pageHeight = paper.height - 2 * margin
+        let renderer = PrintRenderer(html: html, fileURL: document.fileURL, paper: NSPrintInfo.shared.paperSize)
+        printRenderer = renderer
+        renderer.render { [weak self] pdfData in
+            self?.printRenderer = nil
+            guard let pdfData,
+                  let provider = CGDataProvider(data: pdfData as CFData),
+                  let pdf = CGPDFDocument(provider),
+                  let printView = PDFPrintView(document: pdf) else { return }
 
-        // Transitions are disabled so the layout is final when measured below.
-        let narrowJS = """
-            document.documentElement.style.transition = 'none';
-            document.body.style.transition = 'none';
-            document.body.style.maxWidth = '\(Int(printWidth))px';
-            document.body.style.margin = '0';
-            document.body.style.padding = '0';
-            document.querySelectorAll('pre').forEach(function(p) { p.style.whiteSpace = 'pre-wrap'; p.style.overflowWrap = 'anywhere'; });
-            document.documentElement.style.setProperty('--max-width', '\(Int(printWidth))px');
-            document.documentElement.setAttribute('data-theme', 'light');
-            document.documentElement.style.setProperty('--text', '#000');
-            document.documentElement.style.setProperty('--bg', '#fff');
-            document.documentElement.style.setProperty('--code-bg', '#f5f5f7');
-            document.documentElement.style.setProperty('--border', '#ccc');
-            document.documentElement.style.setProperty('--link', '#000');
-            document.documentElement.style.setProperty('--subtle', '#555');
-        """
-
-        webView.evaluateJavaScript(narrowJS) { _, _ in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                // Page breaks go between lines, never through one: merge the
-                // boxes of all text lines and images into horizontal bands and
-                // break at the last band that starts before the page is full.
-                // A heading is kept with the line that follows it.
-                let breakJS = """
-                    (function() {
-                        var ph = \(pageHeight);
-                        var sy = window.scrollY;
-                        var total = Math.ceil(document.body.scrollHeight);
-                        var boxes = [];
-                        function add(r) {
-                            if (r.height > 0) boxes.push([r.top + sy, r.bottom + sy]);
-                        }
-                        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-                        var range = document.createRange();
-                        while (walker.nextNode()) {
-                            if (!walker.currentNode.textContent.trim()) continue;
-                            range.selectNodeContents(walker.currentNode);
-                            var rects = range.getClientRects();
-                            for (var i = 0; i < rects.length; i++) add(rects[i]);
-                        }
-                        document.querySelectorAll('img, hr, input').forEach(function(el) {
-                            add(el.getBoundingClientRect());
-                        });
-                        boxes.sort(function(a, b) { return a[0] - b[0]; });
-                        var bands = [];
-                        boxes.forEach(function(b) {
-                            var last = bands[bands.length - 1];
-                            if (last && b[0] < last[1]) last[1] = Math.max(last[1], b[1]);
-                            else bands.push([b[0], b[1]]);
-                        });
-                        var avoid = {};
-                        document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(function(h) {
-                            var bottom = h.getBoundingClientRect().bottom + sy;
-                            for (var i = 0; i < bands.length; i++) {
-                                if (bands[i][0] >= bottom - 1) { avoid[i] = true; break; }
-                            }
-                        });
-                        var breaks = [];
-                        var start = 0;
-                        while (total - start > ph) {
-                            var limit = start + ph;
-                            var best = -1;
-                            for (var i = 0; i < bands.length && bands[i][0] <= limit; i++) {
-                                if (bands[i][0] > start + 1 && !avoid[i]) best = bands[i][0];
-                            }
-                            if (best < 0) best = limit;
-                            best = Math.floor(best);
-                            breaks.push(best);
-                            start = best;
-                        }
-                        return JSON.stringify({b: breaks, h: total});
-                    })()
-                """
-
-                webView.evaluateJavaScript(breakJS) { result, _ in
-                    let restoreJS = """
-                        document.documentElement.style.transition = '';
-                        document.body.style.transition = '';
-                        document.body.style.maxWidth = '';
-                        document.body.style.margin = '';
-                        document.body.style.padding = '';
-                        document.querySelectorAll('pre').forEach(function(p) { p.style.whiteSpace = ''; p.style.overflowWrap = ''; });
-                        document.documentElement.style.setProperty('--max-width', '\(savedMaxWidth)px');
-                        \(savedAppearance == .dark ? "document.documentElement.setAttribute('data-theme','dark');" : savedAppearance == .light ? "document.documentElement.setAttribute('data-theme','light');" : "document.documentElement.removeAttribute('data-theme');")
-                        document.documentElement.style.removeProperty('--text');
-                        document.documentElement.style.removeProperty('--bg');
-                        document.documentElement.style.removeProperty('--code-bg');
-                        document.documentElement.style.removeProperty('--border');
-                        document.documentElement.style.removeProperty('--link');
-                        document.documentElement.style.removeProperty('--subtle');
-                    """
-
-                    guard let jsonStr = result as? String,
-                          let jsonData = jsonStr.data(using: .utf8),
-                          let json = try? JSONSerialization.jsonObject(with: jsonData) as? [String: Any],
-                          let rawBreaks = json["b"] as? [Double],
-                          let totalH = json["h"] as? Double else {
-                        webView.evaluateJavaScript(restoreJS)
-                        return
-                    }
-
-                    let totalHeight = CGFloat(totalH)
-                    let breakPoints = rawBreaks.map { CGFloat($0) }
-
-                    // Each printed page is one slice of the laid-out document.
-                    let allBreaks = [CGFloat(0)] + breakPoints + [totalHeight]
-                    var slices: [PrintSlice] = []
-                    for i in 0..<(allBreaks.count - 1) {
-                        var yStart = allBreaks[i]
-                        let yEnd = min(allBreaks[i + 1], totalHeight)
-                        while yEnd - yStart > pageHeight {
-                            slices.append(PrintSlice(start: yStart, end: yStart + pageHeight))
-                            yStart += pageHeight
-                        }
-                        if yEnd > yStart {
-                            slices.append(PrintSlice(start: yStart, end: yEnd))
-                        }
-                    }
-
-                    // WebKit caps a captured PDF page at 14,400 points (the PDF
-                    // page size limit) and anything longer comes back cut off, so
-                    // capture runs of whole slices that each stay under it.
-                    var chunks: [[PrintSlice]] = []
-                    for slice in slices {
-                        if let first = chunks.last?.first, slice.end - first.start <= 14_000 {
-                            chunks[chunks.count - 1].append(slice)
-                        } else {
-                            chunks.append([slice])
-                        }
-                    }
-
-                    var captures: [(document: CGPDFDocument, slices: [PrintSlice])] = []
-                    func captureNextChunk() {
-                        guard captures.count < chunks.count else {
-                            webView.evaluateJavaScript(restoreJS)
-                            self.runPrintOperation(captures: captures, paper: paper, margin: margin, printWidth: printWidth)
-                            return
-                        }
-                        let chunk = chunks[captures.count]
-                        let config = WKPDFConfiguration()
-                        config.rect = CGRect(x: 0, y: chunk[0].start, width: printWidth, height: chunk[chunk.count - 1].end - chunk[0].start)
-                        webView.createPDF(configuration: config) { result in
-                            DispatchQueue.main.async {
-                                guard case .success(let data) = result,
-                                      let provider = CGDataProvider(data: data as CFData),
-                                      let document = CGPDFDocument(provider),
-                                      document.numberOfPages > 0 else {
-                                    webView.evaluateJavaScript(restoreJS)
-                                    return
-                                }
-                                captures.append((document, chunk))
-                                captureNextChunk()
-                            }
-                        }
-                    }
-                    captureNextChunk()
-                }
-            }
+            let printInfo = NSPrintInfo.shared.copy() as! NSPrintInfo
+            printInfo.topMargin = 0
+            printInfo.bottomMargin = 0
+            printInfo.leftMargin = 0
+            printInfo.rightMargin = 0
+            printInfo.horizontalPagination = .clip
+            printInfo.verticalPagination = .clip
+            let op = NSPrintOperation(view: printView, printInfo: printInfo)
+            op.showsPrintPanel = true
+            op.showsProgressPanel = true
+            op.run()
         }
-    }
-
-    /// Lays the captured slices out one per page with margins and shows the
-    /// print panel.
-    private func runPrintOperation(captures: [(document: CGPDFDocument, slices: [PrintSlice])], paper: CGSize, margin: CGFloat, printWidth: CGFloat) {
-        let pageData = NSMutableData()
-        guard let consumer = CGDataConsumer(data: pageData) else { return }
-        var pageBox = CGRect(origin: .zero, size: paper)
-        guard let ctx = CGContext(consumer: consumer, mediaBox: &pageBox, nil) else { return }
-
-        for capture in captures {
-            guard let source = capture.document.page(at: 1) else { continue }
-            let sourceHeight = source.getBoxRect(.mediaBox).height
-            let sourceTop = capture.slices[0].start
-            for slice in capture.slices {
-                ctx.beginPage(mediaBox: &pageBox)
-                ctx.saveGState()
-                // Show only this page's slice, so the start of the next one
-                // doesn't peek in below a short page.
-                let sliceHeight = slice.end - slice.start
-                ctx.clip(to: CGRect(x: margin, y: paper.height - margin - sliceHeight, width: printWidth, height: sliceHeight))
-                ctx.translateBy(x: margin, y: paper.height - margin - sourceHeight + (slice.start - sourceTop))
-                ctx.drawPDFPage(source)
-                ctx.restoreGState()
-                ctx.endPage()
-            }
-        }
-        ctx.closePDF()
-
-        guard let pagProvider = CGDataProvider(data: pageData),
-              let pagDoc = CGPDFDocument(pagProvider),
-              let printView = PDFPrintView(document: pagDoc) else { return }
-
-        let printInfo = NSPrintInfo.shared.copy() as! NSPrintInfo
-        printInfo.topMargin = 0
-        printInfo.bottomMargin = 0
-        printInfo.leftMargin = 0
-        printInfo.rightMargin = 0
-        printInfo.horizontalPagination = .clip
-        printInfo.verticalPagination = .clip
-        let op = NSPrintOperation(view: printView, printInfo: printInfo)
-        op.showsPrintPanel = true
-        op.showsProgressPanel = true
-        op.run()
-    }
-
-    private func findWebView(in view: NSView?) -> WKWebView? {
-        guard let view = view else { return nil }
-        if let wk = view as? WKWebView { return wk }
-        for sub in view.subviews {
-            if let found = findWebView(in: sub) { return found }
-        }
-        return nil
     }
 
     func findInKeyWindow() {
