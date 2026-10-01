@@ -71,12 +71,21 @@ struct HTMLConverter: MarkupVisitor {
     }
 
     mutating func visitListItem(_ item: ListItem) -> String {
-        let content = item.children.map { visit($0) }.joined()
-        if let checkbox = item.checkbox {
-            let checked = checkbox == .checked ? " checked" : ""
-            return "<li class=\"task-item\"><input type=\"checkbox\"\(checked) disabled>\(content)</li>\n"
+        guard let checkbox = item.checkbox else {
+            return "<li>\(item.children.map { visit($0) }.joined())</li>\n"
         }
-        return "<li>\(content)</li>\n"
+        // The box goes inside the first paragraph so it sits on the same line
+        // as the text; before a <p> it would get a line of its own.
+        let box = "<input type=\"checkbox\"\(checkbox == .checked ? " checked" : "") disabled>"
+        let children = Array(item.children)
+        var content = ""
+        if let first = children.first as? Paragraph {
+            content = "<p>\(box)\(first.children.map { visit($0) }.joined())</p>\n"
+                + children.dropFirst().map { visit($0) }.joined()
+        } else {
+            content = box + children.map { visit($0) }.joined()
+        }
+        return "<li class=\"task-item\">\(content)</li>\n"
     }
 
     mutating func visitThematicBreak(_ thematicBreak: ThematicBreak) -> String {
