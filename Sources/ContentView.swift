@@ -130,7 +130,7 @@ struct ContentView: View {
                     MarkdownWebView(
                         html: html,
                         contentVersion: document.contentVersion,
-                        baseURL: document.fileURL?.deletingLastPathComponent(),
+                        fileURL: document.fileURL,
                         fontSize: appState.fontSize,
                         maxWidth: appState.maxWidth,
                         fontFamily: appState.selectedFont.css,

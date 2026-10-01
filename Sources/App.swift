@@ -68,8 +68,11 @@ class DocumentState: ObservableObject {
 
     weak var window: NSWindow?
     private var accessedURL: URL?
+    private var fileWatcher: DispatchSourceFileSystemObject?
+    private var reloadPending = false
 
     deinit {
+        fileWatcher?.cancel()
         accessedURL?.stopAccessingSecurityScopedResource()
     }
 
@@ -136,21 +139,65 @@ class DocumentState: ObservableObject {
             url.stopAccessingSecurityScopedResource()
         }
 
-        let document = Document(parsing: content)
-        var converter = HTMLConverter()
-        let html = converter.visit(document)
-
         fileURL = url
         fileName = url.lastPathComponent
-        renderedHTML = html
-        folderNeedingAccess = nil
-        contentVersion += 1
+        render(content)
         AppState.shared.addToRecentFiles(url)
         window?.title = url.lastPathComponent
+        watch(url)
     }
 
+    private func render(_ content: String) {
+        let document = Document(parsing: content)
+        var converter = HTMLConverter()
+        renderedHTML = converter.visit(document)
+        folderNeedingAccess = nil
+        contentVersion += 1
+    }
+
+    /// Re-renders the current file, e.g. after granting access to its images.
     func reload() {
-        if let fileURL { try? openFile(at: fileURL) }
+        guard let fileURL, let content = try? MarkdownFile.read(fileURL) else { return }
+        render(content)
+    }
+
+    // MARK: Live reload
+
+    /// Re-renders when the file changes on disk. Editors often save by
+    /// replacing the file, which ends the watch on the old one, so the file
+    /// is watched again by path after every change.
+    private func watch(_ url: URL) {
+        fileWatcher?.cancel()
+        fileWatcher = nil
+        let descriptor = Darwin.open(url.path, O_EVTONLY)
+        guard descriptor >= 0 else { return }
+        let source = DispatchSource.makeFileSystemObjectSource(
+            fileDescriptor: descriptor,
+            eventMask: [.write, .extend, .delete, .rename],
+            queue: .main
+        )
+        source.setEventHandler { [weak self] in self?.fileDidChange() }
+        source.setCancelHandler { close(descriptor) }
+        source.resume()
+        fileWatcher = source
+    }
+
+    private func fileDidChange() {
+        // Saves often arrive as several events; handle them once the file settles.
+        guard !reloadPending else { return }
+        reloadPending = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            guard let self, let fileURL = self.fileURL else { return }
+            self.reloadPending = false
+            self.watch(fileURL)
+            guard let content = try? MarkdownFile.read(fileURL) else { return }
+            let document = Document(parsing: content)
+            var converter = HTMLConverter()
+            let html = converter.visit(document)
+            if html != self.renderedHTML {
+                self.render(content)
+            }
+        }
     }
 
     /// Called when an image read was denied by the sandbox. Suggests the

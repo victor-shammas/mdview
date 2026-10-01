@@ -5,7 +5,7 @@ import UniformTypeIdentifiers
 struct MarkdownWebView: NSViewRepresentable {
     let html: String
     let contentVersion: Int
-    let baseURL: URL?
+    let fileURL: URL?
     let fontSize: CGFloat
     let maxWidth: CGFloat
     let fontFamily: String
@@ -19,7 +19,7 @@ struct MarkdownWebView: NSViewRepresentable {
     /// Local paths resolve through `LocalFileSchemeHandler` rather than file://,
     /// so images keep working under the App Sandbox.
     private var pageBaseURL: URL? {
-        baseURL.flatMap(LocalFileSchemeHandler.pageURL(for:))
+        fileURL.flatMap { LocalFileSchemeHandler.pageURL(for: $0.deletingLastPathComponent()) }
     }
 
     func makeCoordinator() -> Coordinator {
@@ -37,14 +37,14 @@ struct MarkdownWebView: NSViewRepresentable {
         webView.setValue(false, forKey: "drawsBackground")
         context.coordinator.onFindResults = onFindResults
         context.coordinator.fileHandler.onAccessDenied = onImageAccessDenied
-        context.coordinator.snapshot = Snapshot(html: html, contentVersion: contentVersion, fontSize: fontSize, maxWidth: maxWidth, fontFamily: fontFamily, appearance: appearance, textAlignment: textAlignment, findQuery: findQuery, findMatchIndex: findMatchIndex)
+        context.coordinator.snapshot = Snapshot(fileURL: fileURL, html: html, contentVersion: contentVersion, fontSize: fontSize, maxWidth: maxWidth, fontFamily: fontFamily, appearance: appearance, textAlignment: textAlignment, findQuery: findQuery, findMatchIndex: findMatchIndex)
         context.coordinator.load(buildPage(), baseURL: pageBaseURL, in: webView)
         return webView
     }
 
     func updateNSView(_ webView: WKWebView, context: Context) {
         let prev = context.coordinator.snapshot!
-        let cur = Snapshot(html: html, contentVersion: contentVersion, fontSize: fontSize, maxWidth: maxWidth, fontFamily: fontFamily, appearance: appearance, textAlignment: textAlignment, findQuery: findQuery, findMatchIndex: findMatchIndex)
+        let cur = Snapshot(fileURL: fileURL, html: html, contentVersion: contentVersion, fontSize: fontSize, maxWidth: maxWidth, fontFamily: fontFamily, appearance: appearance, textAlignment: textAlignment, findQuery: findQuery, findMatchIndex: findMatchIndex)
         context.coordinator.snapshot = cur
         context.coordinator.onFindResults = onFindResults
         context.coordinator.fileHandler.onAccessDenied = onImageAccessDenied
@@ -54,8 +54,21 @@ struct MarkdownWebView: NSViewRepresentable {
                 context.coordinator.pendingFindQuery = cur.findQuery
                 context.coordinator.pendingFindIndex = cur.findMatchIndex
             }
-            context.coordinator.isLoaded = false
-            context.coordinator.load(buildPage(), baseURL: pageBaseURL, in: webView)
+            let page = buildPage()
+            let baseURL = pageBaseURL
+            let coordinator = context.coordinator
+            guard prev.fileURL == cur.fileURL, coordinator.isLoaded else {
+                coordinator.isLoaded = false
+                coordinator.load(page, baseURL: baseURL, in: webView)
+                return
+            }
+            // Same file re-rendered (edited on disk, or images allowed): keep
+            // the reader's place.
+            coordinator.isLoaded = false
+            webView.evaluateJavaScript("window.scrollY") { result, _ in
+                coordinator.pendingScrollY = result as? Double
+                coordinator.load(page, baseURL: baseURL, in: webView)
+            }
             return
         }
 
@@ -342,6 +355,7 @@ struct MarkdownWebView: NSViewRepresentable {
     }
 
     struct Snapshot {
+        let fileURL: URL?
         let html: String
         let contentVersion: Int
         let fontSize: CGFloat
@@ -360,6 +374,7 @@ struct MarkdownWebView: NSViewRepresentable {
         var pendingFindQuery: String?
         var pendingFindIndex: Int = 0
         var isLoaded = false
+        var pendingScrollY: Double?
         /// The URL the current page was loaded with; the only main-frame
         /// navigation allowed besides same-page anchor links.
         private var pageURL: URL?
@@ -371,6 +386,10 @@ struct MarkdownWebView: NSViewRepresentable {
 
         func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
             isLoaded = true
+            if let y = pendingScrollY {
+                pendingScrollY = nil
+                webView.evaluateJavaScript("window.scrollTo(0, \(y))")
+            }
             guard let query = pendingFindQuery, !query.isEmpty else { return }
             pendingFindQuery = nil
             let escaped = query
