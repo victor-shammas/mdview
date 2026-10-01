@@ -3,6 +3,7 @@ import SwiftUI
 
 struct MarkdownWebView: NSViewRepresentable {
     let html: String
+    let contentVersion: Int
     let baseURL: URL?
     let fontSize: CGFloat
     let maxWidth: CGFloat
@@ -12,6 +13,13 @@ struct MarkdownWebView: NSViewRepresentable {
     let findQuery: String
     let findMatchIndex: Int
     var onFindResults: ((Int) -> Void)?
+    var onImageAccessDenied: ((URL) -> Void)?
+
+    /// Local paths resolve through `LocalFileSchemeHandler` rather than file://,
+    /// so images keep working under the App Sandbox.
+    private var pageBaseURL: URL? {
+        baseURL.flatMap(LocalFileSchemeHandler.pageURL(for:))
+    }
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -19,28 +27,31 @@ struct MarkdownWebView: NSViewRepresentable {
 
     func makeNSView(context: Context) -> WKWebView {
         let config = WKWebViewConfiguration()
+        config.setURLSchemeHandler(context.coordinator.fileHandler, forURLScheme: LocalFileSchemeHandler.scheme)
         let webView = WKWebView(frame: .zero, configuration: config)
         webView.navigationDelegate = context.coordinator
         webView.setValue(false, forKey: "drawsBackground")
         context.coordinator.onFindResults = onFindResults
-        context.coordinator.snapshot = Snapshot(html: html, fontSize: fontSize, maxWidth: maxWidth, fontFamily: fontFamily, appearance: appearance, textAlignment: textAlignment, findQuery: findQuery, findMatchIndex: findMatchIndex)
-        webView.loadHTMLString(buildPage(), baseURL: baseURL)
+        context.coordinator.fileHandler.onAccessDenied = onImageAccessDenied
+        context.coordinator.snapshot = Snapshot(html: html, contentVersion: contentVersion, fontSize: fontSize, maxWidth: maxWidth, fontFamily: fontFamily, appearance: appearance, textAlignment: textAlignment, findQuery: findQuery, findMatchIndex: findMatchIndex)
+        webView.loadHTMLString(buildPage(), baseURL: pageBaseURL)
         return webView
     }
 
     func updateNSView(_ webView: WKWebView, context: Context) {
         let prev = context.coordinator.snapshot!
-        let cur = Snapshot(html: html, fontSize: fontSize, maxWidth: maxWidth, fontFamily: fontFamily, appearance: appearance, textAlignment: textAlignment, findQuery: findQuery, findMatchIndex: findMatchIndex)
+        let cur = Snapshot(html: html, contentVersion: contentVersion, fontSize: fontSize, maxWidth: maxWidth, fontFamily: fontFamily, appearance: appearance, textAlignment: textAlignment, findQuery: findQuery, findMatchIndex: findMatchIndex)
         context.coordinator.snapshot = cur
         context.coordinator.onFindResults = onFindResults
+        context.coordinator.fileHandler.onAccessDenied = onImageAccessDenied
 
-        if prev.html != cur.html {
+        if prev.html != cur.html || prev.contentVersion != cur.contentVersion {
             if !cur.findQuery.isEmpty {
                 context.coordinator.pendingFindQuery = cur.findQuery
                 context.coordinator.pendingFindIndex = cur.findMatchIndex
             }
             context.coordinator.isLoaded = false
-            webView.loadHTMLString(buildPage(), baseURL: baseURL)
+            webView.loadHTMLString(buildPage(), baseURL: pageBaseURL)
             return
         }
 
@@ -320,6 +331,7 @@ struct MarkdownWebView: NSViewRepresentable {
 
     struct Snapshot {
         let html: String
+        let contentVersion: Int
         let fontSize: CGFloat
         let maxWidth: CGFloat
         let fontFamily: String
@@ -331,6 +343,7 @@ struct MarkdownWebView: NSViewRepresentable {
 
     class Coordinator: NSObject, WKNavigationDelegate {
         var snapshot: Snapshot?
+        let fileHandler = LocalFileSchemeHandler()
         var onFindResults: ((Int) -> Void)?
         var pendingFindQuery: String?
         var pendingFindIndex: Int = 0
@@ -364,7 +377,17 @@ struct MarkdownWebView: NSViewRepresentable {
         ) {
             if navigationAction.navigationType == .linkActivated,
                let url = navigationAction.request.url {
-                NSWorkspace.shared.open(url)
+                if let fileURL = LocalFileSchemeHandler.fileURL(for: url) {
+                    // Same-page anchors scroll in place; other local links open in their default app.
+                    if url.fragment != nil, let current = webView.url,
+                       LocalFileSchemeHandler.fileURL(for: current) == fileURL {
+                        decisionHandler(.allow)
+                        return
+                    }
+                    NSWorkspace.shared.open(fileURL)
+                } else {
+                    NSWorkspace.shared.open(url)
+                }
                 decisionHandler(.cancel)
             } else {
                 decisionHandler(.allow)

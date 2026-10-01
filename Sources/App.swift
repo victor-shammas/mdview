@@ -61,6 +61,16 @@ class DocumentState: ObservableObject {
     @Published var findMatchCount = 0
     @Published var findCurrentMatch = 0
     @Published var findBarFocusTrigger = 0
+    /// Bumped on every (re)load so the web view re-renders even if the HTML is unchanged.
+    @Published var contentVersion = 0
+    /// Set when images failed to load because the sandbox blocks their folder.
+    @Published var folderNeedingAccess: URL?
+
+    private var accessedURL: URL?
+
+    deinit {
+        accessedURL?.stopAccessingSecurityScopedResource()
+    }
 
     func showFindBar() {
         isFindBarVisible = true
@@ -85,7 +95,20 @@ class DocumentState: ObservableObject {
     }
 
     func openFile(at url: URL) {
-        guard let content = try? String(contentsOf: url, encoding: .utf8) else { return }
+        // URLs resolved from Recently Read bookmarks are only readable inside
+        // the sandbox while access is claimed. Hold it for the window's lifetime.
+        let accessing = url.startAccessingSecurityScopedResource()
+        guard let content = try? String(contentsOf: url, encoding: .utf8) else {
+            if accessing { url.stopAccessingSecurityScopedResource() }
+            return
+        }
+        if accessedURL != url {
+            accessedURL?.stopAccessingSecurityScopedResource()
+            accessedURL = accessing ? url : nil
+        } else if accessing {
+            url.stopAccessingSecurityScopedResource()
+        }
+
         let document = Document(parsing: content)
         var converter = HTMLConverter()
         let html = converter.visit(document)
@@ -93,11 +116,25 @@ class DocumentState: ObservableObject {
         fileURL = url
         fileName = url.lastPathComponent
         renderedHTML = html
+        folderNeedingAccess = nil
+        contentVersion += 1
         AppState.shared.addToRecentFiles(url)
 
         DispatchQueue.main.async {
             NSApp.keyWindow?.title = url.lastPathComponent
         }
+    }
+
+    func reload() {
+        if let fileURL { openFile(at: fileURL) }
+    }
+
+    /// Called when an image read was denied by the sandbox. Suggests the
+    /// smallest folder that covers the document and every blocked image.
+    func imageAccessDenied(_ imageURL: URL) {
+        guard let fileURL else { return }
+        let base = folderNeedingAccess ?? fileURL.deletingLastPathComponent()
+        folderNeedingAccess = base.commonAncestor(with: imageURL.deletingLastPathComponent())
     }
 }
 
@@ -124,9 +161,9 @@ struct MDViewApp: App {
                         Text("No Recent Files")
                             .foregroundStyle(.secondary)
                     } else {
-                        ForEach(appState.recentFiles, id: \.self) { url in
-                            Button(url.lastPathComponent) {
-                                openURL(url)
+                        ForEach(appState.recentFiles, id: \.url) { file in
+                            Button(file.url.lastPathComponent) {
+                                openURL(file.url)
                             }
                         }
                         Divider()
@@ -233,7 +270,16 @@ class AppState: ObservableObject {
     var defaultWindowHasContent = false
     @Published var pendingOpenURL: URL?
 
-    @Published var recentFiles: [URL] = []
+    struct RecentFile {
+        let url: URL
+        let bookmark: Data
+    }
+
+    @Published private(set) var recentFiles: [RecentFile] = []
+    /// Bumped when the user grants access to a folder, so windows with
+    /// blocked images can reload.
+    @Published private(set) var folderAccessVersion = 0
+    private var grantedFolders: [RecentFile] = []
 
     @Published var fontSize: CGFloat {
         didSet { defaults.set(fontSize, forKey: "fontSize") }
@@ -282,25 +328,69 @@ class AppState: ObservableObject {
 
         if let bookmarks = d.array(forKey: "recentFiles") as? [Data] {
             recentFiles = bookmarks.compactMap { data in
-                var stale = false
-                return try? URL(resolvingBookmarkData: data, options: .withSecurityScope, bookmarkDataIsStale: &stale)
+                URL.resolvingSecurityScopedBookmark(data).map { RecentFile(url: $0.url, bookmark: $0.bookmark) }
+            }
+        }
+
+        // Folders the user allowed for images stay accessible while the app runs.
+        if let bookmarks = d.array(forKey: "grantedFolders") as? [Data] {
+            grantedFolders = bookmarks.compactMap { data in
+                guard let resolved = URL.resolvingSecurityScopedBookmark(data),
+                      resolved.url.startAccessingSecurityScopedResource() else { return nil }
+                return RecentFile(url: resolved.url, bookmark: resolved.bookmark)
             }
         }
     }
 
     func addToRecentFiles(_ url: URL) {
-        recentFiles.removeAll { $0.path == url.path }
-        recentFiles.insert(url, at: 0)
+        // Only bookmark the file being opened: the app can't create bookmarks
+        // for older entries it isn't currently accessing, so keep theirs as is.
+        let existing = recentFiles.first { $0.url.path == url.path }
+        recentFiles.removeAll { $0.url.path == url.path }
+        if let bookmark = url.securityScopedBookmark() ?? existing?.bookmark {
+            recentFiles.insert(RecentFile(url: url, bookmark: bookmark), at: 0)
+        }
         if recentFiles.count > 10 {
             recentFiles = Array(recentFiles.prefix(10))
         }
-        let bookmarks = recentFiles.compactMap { try? $0.bookmarkData(options: .withSecurityScope) }
-        defaults.set(bookmarks, forKey: "recentFiles")
+        defaults.set(recentFiles.map(\.bookmark), forKey: "recentFiles")
     }
 
     func clearRecentFiles() {
         recentFiles = []
         defaults.removeObject(forKey: "recentFiles")
+    }
+
+    /// Asks the user to pick a folder (pre-selecting `suggested`) so images in
+    /// it can be shown, and remembers the choice across launches.
+    func requestFolderAccess(suggested: URL, for window: NSWindow?) {
+        let panel = NSOpenPanel()
+        panel.message = "Choose a folder to let MDView show the images stored in it."
+        panel.prompt = "Allow"
+        panel.canChooseFiles = false
+        panel.canChooseDirectories = true
+        panel.canCreateDirectories = false
+        panel.allowsMultipleSelection = false
+        panel.directoryURL = suggested
+
+        let completion: (NSApplication.ModalResponse) -> Void = { [weak self] response in
+            guard response == .OK, let url = panel.url else { return }
+            self?.grantFolderAccess(url)
+        }
+        if let window {
+            panel.beginSheetModal(for: window, completionHandler: completion)
+        } else {
+            completion(panel.runModal())
+        }
+    }
+
+    private func grantFolderAccess(_ url: URL) {
+        guard let bookmark = url.securityScopedBookmark() else { return }
+        grantedFolders.removeAll { $0.url.path == url.path }
+        _ = url.startAccessingSecurityScopedResource()
+        grantedFolders.insert(RecentFile(url: url, bookmark: bookmark), at: 0)
+        defaults.set(grantedFolders.map(\.bookmark), forKey: "grantedFolders")
+        folderAccessVersion += 1
     }
 
     func zoomIn() { fontSize = min(fontSize + 2, 32) }

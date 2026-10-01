@@ -78,6 +78,35 @@ struct FindBar: View {
     }
 }
 
+struct FolderAccessBar: View {
+    let folder: URL
+    let onAllow: () -> Void
+    let onDismiss: () -> Void
+
+    var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "photo")
+                .foregroundStyle(.secondary)
+            Text("Some images are in \u{201C}\(folder.lastPathComponent)\u{201D}, which MDView needs permission to read.")
+                .font(.system(size: 12))
+                .lineLimit(1)
+                .truncationMode(.middle)
+            Spacer()
+            Button("Allow Access\u{2026}", action: onAllow)
+                .controlSize(.small)
+            Button(action: onDismiss) {
+                Image(systemName: "xmark")
+                    .font(.system(size: 10, weight: .semibold))
+            }
+            .buttonStyle(.borderless)
+            .help("Dismiss")
+        }
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(.bar)
+    }
+}
+
 struct ContentView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var document: DocumentState
@@ -86,11 +115,21 @@ struct ContentView: View {
         Group {
             if let html = document.renderedHTML {
                 VStack(spacing: 0) {
+                    if let folder = document.folderNeedingAccess {
+                        FolderAccessBar(
+                            folder: folder,
+                            onAllow: {
+                                appState.requestFolderAccess(suggested: folder, for: NSApp.keyWindow)
+                            },
+                            onDismiss: { document.folderNeedingAccess = nil }
+                        )
+                    }
                     if document.isFindBarVisible {
                         FindBar(document: document)
                     }
                     MarkdownWebView(
                         html: html,
+                        contentVersion: document.contentVersion,
                         baseURL: document.fileURL?.deletingLastPathComponent(),
                         fontSize: appState.fontSize,
                         maxWidth: appState.maxWidth,
@@ -102,8 +141,16 @@ struct ContentView: View {
                         onFindResults: { count in
                             document.findMatchCount = count
                             document.findCurrentMatch = 0
+                        },
+                        onImageAccessDenied: { imageURL in
+                            document.imageAccessDenied(imageURL)
                         }
                     )
+                }
+                .onChange(of: appState.folderAccessVersion) { _ in
+                    if document.folderNeedingAccess != nil {
+                        document.reload()
+                    }
                 }
             } else {
                 VStack(spacing: 12) {
