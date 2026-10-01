@@ -479,6 +479,12 @@ class PDFPrintView: NSView {
     }
 }
 
+/// A vertical slice of the laid-out document that becomes one printed page.
+struct PrintSlice {
+    let start: CGFloat
+    let end: CGFloat
+}
+
 // MARK: - App Delegate
 
 class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
@@ -620,6 +626,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
             document.body.style.maxWidth = '\(Int(printWidth))px';
             document.body.style.margin = '0';
             document.body.style.padding = '0';
+            document.querySelectorAll('pre').forEach(function(p) { p.style.whiteSpace = 'pre-wrap'; p.style.overflowWrap = 'anywhere'; });
             document.documentElement.style.setProperty('--max-width', '\(Int(printWidth))px');
             document.documentElement.setAttribute('data-theme', 'light');
             document.documentElement.style.setProperty('--text', '#000');
@@ -694,6 +701,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                         document.body.style.maxWidth = '';
                         document.body.style.margin = '';
                         document.body.style.padding = '';
+                        document.querySelectorAll('pre').forEach(function(p) { p.style.whiteSpace = ''; p.style.overflowWrap = ''; });
                         document.documentElement.style.setProperty('--max-width', '\(savedMaxWidth)px');
                         \(savedAppearance == .dark ? "document.documentElement.setAttribute('data-theme','dark');" : savedAppearance == .light ? "document.documentElement.setAttribute('data-theme','light');" : "document.documentElement.removeAttribute('data-theme');")
                         document.documentElement.style.removeProperty('--text');
@@ -716,71 +724,105 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
                     let totalHeight = CGFloat(totalH)
                     let breakPoints = rawBreaks.map { CGFloat($0) }
 
-                    let pdfConfig = WKPDFConfiguration()
-                    pdfConfig.rect = CGRect(x: 0, y: 0, width: printWidth, height: totalHeight)
-
-                    webView.createPDF(configuration: pdfConfig) { pdfResult in
-                        DispatchQueue.main.async {
-                            webView.evaluateJavaScript(restoreJS)
-
-                            guard case .success(let pdfData) = pdfResult,
-                                  let provider = CGDataProvider(data: pdfData as CFData),
-                                  let srcDoc = CGPDFDocument(provider),
-                                  let srcPage = srcDoc.page(at: 1) else { return }
-
-                            let allBreaks = [CGFloat(0)] + breakPoints + [totalHeight]
-                            var segments: [(CGFloat, CGFloat)] = []
-                            for i in 0..<(allBreaks.count - 1) {
-                                var yStart = allBreaks[i]
-                                let yEnd = min(allBreaks[i + 1], totalHeight)
-                                while yEnd - yStart > pageHeight {
-                                    segments.append((yStart, yStart + pageHeight))
-                                    yStart += pageHeight
-                                }
-                                if yEnd > yStart {
-                                    segments.append((yStart, yEnd))
-                                }
-                            }
-
-                            let pageData = NSMutableData()
-                            guard let consumer = CGDataConsumer(data: pageData) else { return }
-                            var pageBox = CGRect(origin: .zero, size: paper)
-                            guard let ctx = CGContext(consumer: consumer, mediaBox: &pageBox, nil) else { return }
-
-                            for (yStart, yEnd) in segments {
-                                ctx.beginPage(mediaBox: &pageBox)
-                                ctx.saveGState()
-                                // Show only this page's slice, so the start of the next one
-                                // doesn't peek in below a short page.
-                                let sliceHeight = yEnd - yStart
-                                ctx.clip(to: CGRect(x: margin, y: paper.height - margin - sliceHeight, width: printWidth, height: sliceHeight))
-                                ctx.translateBy(x: margin, y: paper.height - margin - totalHeight + yStart)
-                                ctx.drawPDFPage(srcPage)
-                                ctx.restoreGState()
-                                ctx.endPage()
-                            }
-                            ctx.closePDF()
-
-                            guard let pagProvider = CGDataProvider(data: pageData),
-                                  let pagDoc = CGPDFDocument(pagProvider),
-                                  let printView = PDFPrintView(document: pagDoc) else { return }
-
-                            let printInfo = NSPrintInfo.shared.copy() as! NSPrintInfo
-                            printInfo.topMargin = 0
-                            printInfo.bottomMargin = 0
-                            printInfo.leftMargin = 0
-                            printInfo.rightMargin = 0
-                            printInfo.horizontalPagination = .clip
-                            printInfo.verticalPagination = .clip
-                            let op = NSPrintOperation(view: printView, printInfo: printInfo)
-                            op.showsPrintPanel = true
-                            op.showsProgressPanel = true
-                            op.run()
+                    // Each printed page is one slice of the laid-out document.
+                    let allBreaks = [CGFloat(0)] + breakPoints + [totalHeight]
+                    var slices: [PrintSlice] = []
+                    for i in 0..<(allBreaks.count - 1) {
+                        var yStart = allBreaks[i]
+                        let yEnd = min(allBreaks[i + 1], totalHeight)
+                        while yEnd - yStart > pageHeight {
+                            slices.append(PrintSlice(start: yStart, end: yStart + pageHeight))
+                            yStart += pageHeight
+                        }
+                        if yEnd > yStart {
+                            slices.append(PrintSlice(start: yStart, end: yEnd))
                         }
                     }
+
+                    // WebKit caps a captured PDF page at 14,400 points (the PDF
+                    // page size limit) and anything longer comes back cut off, so
+                    // capture runs of whole slices that each stay under it.
+                    var chunks: [[PrintSlice]] = []
+                    for slice in slices {
+                        if let first = chunks.last?.first, slice.end - first.start <= 14_000 {
+                            chunks[chunks.count - 1].append(slice)
+                        } else {
+                            chunks.append([slice])
+                        }
+                    }
+
+                    var captures: [(document: CGPDFDocument, slices: [PrintSlice])] = []
+                    func captureNextChunk() {
+                        guard captures.count < chunks.count else {
+                            webView.evaluateJavaScript(restoreJS)
+                            self.runPrintOperation(captures: captures, paper: paper, margin: margin, printWidth: printWidth)
+                            return
+                        }
+                        let chunk = chunks[captures.count]
+                        let config = WKPDFConfiguration()
+                        config.rect = CGRect(x: 0, y: chunk[0].start, width: printWidth, height: chunk[chunk.count - 1].end - chunk[0].start)
+                        webView.createPDF(configuration: config) { result in
+                            DispatchQueue.main.async {
+                                guard case .success(let data) = result,
+                                      let provider = CGDataProvider(data: data as CFData),
+                                      let document = CGPDFDocument(provider),
+                                      document.numberOfPages > 0 else {
+                                    webView.evaluateJavaScript(restoreJS)
+                                    return
+                                }
+                                captures.append((document, chunk))
+                                captureNextChunk()
+                            }
+                        }
+                    }
+                    captureNextChunk()
                 }
             }
         }
+    }
+
+    /// Lays the captured slices out one per page with margins and shows the
+    /// print panel.
+    private func runPrintOperation(captures: [(document: CGPDFDocument, slices: [PrintSlice])], paper: CGSize, margin: CGFloat, printWidth: CGFloat) {
+        let pageData = NSMutableData()
+        guard let consumer = CGDataConsumer(data: pageData) else { return }
+        var pageBox = CGRect(origin: .zero, size: paper)
+        guard let ctx = CGContext(consumer: consumer, mediaBox: &pageBox, nil) else { return }
+
+        for capture in captures {
+            guard let source = capture.document.page(at: 1) else { continue }
+            let sourceHeight = source.getBoxRect(.mediaBox).height
+            let sourceTop = capture.slices[0].start
+            for slice in capture.slices {
+                ctx.beginPage(mediaBox: &pageBox)
+                ctx.saveGState()
+                // Show only this page's slice, so the start of the next one
+                // doesn't peek in below a short page.
+                let sliceHeight = slice.end - slice.start
+                ctx.clip(to: CGRect(x: margin, y: paper.height - margin - sliceHeight, width: printWidth, height: sliceHeight))
+                ctx.translateBy(x: margin, y: paper.height - margin - sourceHeight + (slice.start - sourceTop))
+                ctx.drawPDFPage(source)
+                ctx.restoreGState()
+                ctx.endPage()
+            }
+        }
+        ctx.closePDF()
+
+        guard let pagProvider = CGDataProvider(data: pageData),
+              let pagDoc = CGPDFDocument(pagProvider),
+              let printView = PDFPrintView(document: pagDoc) else { return }
+
+        let printInfo = NSPrintInfo.shared.copy() as! NSPrintInfo
+        printInfo.topMargin = 0
+        printInfo.bottomMargin = 0
+        printInfo.leftMargin = 0
+        printInfo.rightMargin = 0
+        printInfo.horizontalPagination = .clip
+        printInfo.verticalPagination = .clip
+        let op = NSPrintOperation(view: printView, printInfo: printInfo)
+        op.showsPrintPanel = true
+        op.showsProgressPanel = true
+        op.run()
     }
 
     private func findWebView(in view: NSView?) -> WKWebView? {
