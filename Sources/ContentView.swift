@@ -65,7 +65,7 @@ struct FindBar: View {
         .padding(.vertical, 6)
         .background(.bar)
         .onAppear { isTextFieldFocused = true }
-        .onChange(of: document.findBarFocusTrigger) { _ in
+        .onChange(of: document.findBarFocusTrigger) {
             isTextFieldFocused = true
         }
     }
@@ -147,7 +147,7 @@ struct ContentView: View {
                         }
                     )
                 }
-                .onChange(of: appState.folderAccessVersion) { _ in
+                .onChange(of: appState.folderAccessVersion) {
                     if document.folderNeedingAccess != nil {
                         document.reload()
                     }

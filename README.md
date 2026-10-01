@@ -19,7 +19,7 @@ A lightweight Markdown viewer for macOS. Opens `.md`, `.markdown`, and `.txt` fi
 
 ## Install
 
-Requires Swift 5.9+ and macOS 12+.
+Requires Swift 5.9+ and macOS 14+.
 
 **Quick install** (builds a universal binary and copies to `/Applications`):
 

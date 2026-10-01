@@ -5,7 +5,7 @@ PRODUCT_BUNDLE_IDENTIFIER = com.victorshammas.mdview
 MARKETING_VERSION = 1.1.1
 // Must increase with every App Store Connect upload.
 CURRENT_PROJECT_VERSION = 1
-MACOSX_DEPLOYMENT_TARGET = 12.0
+MACOSX_DEPLOYMENT_TARGET = 14.0
 
 // Signing. Until there is an Apple Developer team, builds are signed to run
 // locally only. Then set DEVELOPMENT_TEAM to the Team ID (not a secret) and

@@ -3,7 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "mdview",
-    platforms: [.macOS(.v12)],
+    platforms: [.macOS(.v14)],
     dependencies: [
         .package(url: "https://github.com/apple/swift-markdown.git", from: "0.3.0"),
     ],
