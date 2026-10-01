@@ -2,7 +2,7 @@
 
 A Markdown reader for macOS, not an editor. Plainview opens `.md`, `.markdown` and `.txt` files in a clean, readable window, and that's all it does: no editing, no sidebar, no accounts.
 
-Plainview is coming to the Mac App Store. The source is here under the MIT license, so you can also build it yourself. (Until version 1.2 it was called MDView.)
+Plainview is coming to the Mac App Store. The source is here under the MIT license, so you can also build it yourself. (Until version 2.0 it was called MDView.)
 
 ![Plainview screenshot](screenshot.png)
 
