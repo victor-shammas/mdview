@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3ACFE68C3DAA4CB9C9F12A8B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4135D1734BE9E88018EA134C /* Assets.xcassets */; };
-		2F69FB3ED5FF43A735060F27 /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = E994CA2028E9D9FBB544C395 /* Markdown */; };
-		A7508A301357F41D88C1BB18 /* MDViewQuickLook.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C6DCCF70338566B6EC152F38 /* MDViewQuickLook.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		03DF703693129B9A8E7524F5 /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = C09DE6CF2307485AE0961D73 /* Markdown */; };
+		2F69FB3ED5FF43A735060F27 /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = E994CA2028E9D9FBB544C395 /* Markdown */; };
+		3ACFE68C3DAA4CB9C9F12A8B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4135D1734BE9E88018EA134C /* Assets.xcassets */; };
+		A7508A301357F41D88C1BB18 /* MDViewQuickLook.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C6DCCF70338566B6EC152F38 /* MDViewQuickLook.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,14 +39,21 @@
 
 /* Begin PBXFileReference section */
 		1011C124ABBA8BE9C0AA2AC2 /* MDView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MDView.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		C6DCCF70338566B6EC152F38 /* MDViewQuickLook.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MDViewQuickLook.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		4135D1734BE9E88018EA134C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		E1045356A0140B64FF090335 /* MDView.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MDView.entitlements; sourceTree = "<group>"; };
 		9CF75AC063ABF2338945726C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		C6DCCF70338566B6EC152F38 /* MDViewQuickLook.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MDViewQuickLook.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1045356A0140B64FF090335 /* MDView.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MDView.entitlements; sourceTree = "<group>"; };
 		F8391DA3F618FB1CB78F3D79 /* MDView.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MDView.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		45D2775DCF6FFB9B5210E988 /* Exceptions for "QuickLook" folder in "MDViewQuickLook" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 45A323975BC291DA934FE5F5 /* MDViewQuickLook */;
+		};
 		872D22C4368CC84DE067E9E9 /* Exceptions for "Sources" folder in "MDViewQuickLook" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -54,14 +61,6 @@
 				Shared/MarkdownFile.swift,
 				Shared/PageStyle.swift,
 				Shared/PageTemplate.swift,
-			);
-			target = 45A323975BC291DA934FE5F5 /* MDViewQuickLook */;
-		};
-		45D2775DCF6FFB9B5210E988 /* Exceptions for "QuickLook" folder in "MDViewQuickLook" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-				QuickLook.entitlements,
 			);
 			target = 45A323975BC291DA934FE5F5 /* MDViewQuickLook */;
 		};
@@ -139,6 +138,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		45A323975BC291DA934FE5F5 /* MDViewQuickLook */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4ACA0FA8DBE445DD9B25D31C /* Build configuration list for PBXNativeTarget "MDViewQuickLook" */;
+			buildPhases = (
+				418A713FC5EC8BDB2B184B2F /* Sources */,
+				997D46D5F1BCE4AA246C0FCA /* Frameworks */,
+				E66ACC89AF348BF4C3181811 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				EA7E20F66B785865C486A86F /* QuickLook */,
+			);
+			name = MDViewQuickLook;
+			packageProductDependencies = (
+				C09DE6CF2307485AE0961D73 /* Markdown */,
+			);
+			productName = MDViewQuickLook;
+			productReference = C6DCCF70338566B6EC152F38 /* MDViewQuickLook.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		8E9B1325D6670EC6D521E621 /* MDView */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = AFDE3B9B24E83E7F6DE909C9 /* Build configuration list for PBXNativeTarget "MDView" */;
@@ -164,29 +186,6 @@
 			productReference = 1011C124ABBA8BE9C0AA2AC2 /* MDView.app */;
 			productType = "com.apple.product-type.application";
 		};
-		45A323975BC291DA934FE5F5 /* MDViewQuickLook */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4ACA0FA8DBE445DD9B25D31C /* Build configuration list for PBXNativeTarget "MDViewQuickLook" */;
-			buildPhases = (
-				418A713FC5EC8BDB2B184B2F /* Sources */,
-				997D46D5F1BCE4AA246C0FCA /* Frameworks */,
-				E66ACC89AF348BF4C3181811 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				EA7E20F66B785865C486A86F /* QuickLook */,
-			);
-			name = MDViewQuickLook;
-			packageProductDependencies = (
-				C09DE6CF2307485AE0961D73 /* Markdown */,
-			);
-			productName = MDViewQuickLook;
-			productReference = C6DCCF70338566B6EC152F38 /* MDViewQuickLook.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -197,10 +196,10 @@
 				LastSwiftUpdateCheck = 2700;
 				LastUpgradeCheck = 2700;
 				TargetAttributes = {
-					8E9B1325D6670EC6D521E621 = {
+					45A323975BC291DA934FE5F5 = {
 						CreatedOnToolsVersion = 27.0;
 					};
-					45A323975BC291DA934FE5F5 = {
+					8E9B1325D6670EC6D521E621 = {
 						CreatedOnToolsVersion = 27.0;
 					};
 				};
@@ -281,18 +280,18 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
-				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				SDKROOT = macosx;
-				SWIFT_VERSION = 5.0;
-				DEBUG_INFORMATION_FORMAT = dwarf;
-				ENABLE_TESTABILITY = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
@@ -305,47 +304,33 @@
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
 				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				SDKROOT = macosx;
-				SWIFT_VERSION = 5.0;
-				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
-				ENABLE_NS_ASSERTIONS = NO;
 				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
 			};
 			name = Release;
 		};
-		EB0D90737DB8B2D2C28C99C7 /* Debug */ = {
+		4E8CA285B84286D156E94005 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Support/MDView.entitlements;
-				COMBINE_HIDPI_IMAGES = YES;
+				CODE_SIGN_ENTITLEMENTS = QuickLook/QuickLook.entitlements;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Support/Info.plist;
+				INFOPLIST_FILE = QuickLook/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
 				);
-			};
-			name = Debug;
-		};
-		B9AA61973CA4A432BECAC67B /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Support/MDView.entitlements;
-				COMBINE_HIDPI_IMAGES = YES;
-				ENABLE_HARDENED_RUNTIME = YES;
-				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = Support/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
+				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited).QuickLook";
+				PRODUCT_NAME = MDViewQuickLook;
+				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};
@@ -367,32 +352,46 @@
 			};
 			name = Debug;
 		};
-		4E8CA285B84286D156E94005 /* Release */ = {
+		B9AA61973CA4A432BECAC67B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = QuickLook/QuickLook.entitlements;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Support/MDView.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
-				INFOPLIST_FILE = QuickLook/Info.plist;
+				INFOPLIST_FILE = Support/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
-					"@executable_path/../../../../Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited).QuickLook";
-				PRODUCT_NAME = MDViewQuickLook;
-				SKIP_INSTALL = YES;
 			};
 			name = Release;
+		};
+		EB0D90737DB8B2D2C28C99C7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Support/MDView.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Support/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+			};
+			name = Debug;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C10D23020D9D64A86E055756 /* Build configuration list for PBXProject "MDView" */ = {
+		4ACA0FA8DBE445DD9B25D31C /* Build configuration list for PBXNativeTarget "MDViewQuickLook" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				2A1C7EFE573233151DBF8BE0 /* Debug */,
-				45EF184EC9CD369A3FB79806 /* Release */,
+				7B702F8103067949C495FEFF /* Debug */,
+				4E8CA285B84286D156E94005 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -406,11 +405,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		4ACA0FA8DBE445DD9B25D31C /* Build configuration list for PBXNativeTarget "MDViewQuickLook" */ = {
+		C10D23020D9D64A86E055756 /* Build configuration list for PBXProject "MDView" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				7B702F8103067949C495FEFF /* Debug */,
-				4E8CA285B84286D156E94005 /* Release */,
+				2A1C7EFE573233151DBF8BE0 /* Debug */,
+				45EF184EC9CD369A3FB79806 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
@@ -429,12 +428,12 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		E994CA2028E9D9FBB544C395 /* Markdown */ = {
+		C09DE6CF2307485AE0961D73 /* Markdown */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 7888FF8E2455643058EB0263 /* XCRemoteSwiftPackageReference "swift-markdown" */;
 			productName = Markdown;
 		};
-		C09DE6CF2307485AE0961D73 /* Markdown */ = {
+		E994CA2028E9D9FBB544C395 /* Markdown */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 7888FF8E2455643058EB0263 /* XCRemoteSwiftPackageReference "swift-markdown" */;
 			productName = Markdown;
