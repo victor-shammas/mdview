@@ -1,0 +1,275 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		3ACFE68C3DAA4CB9C9F12A8B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4135D1734BE9E88018EA134C /* Assets.xcassets */; };
+		2F69FB3ED5FF43A735060F27 /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = E994CA2028E9D9FBB544C395 /* Markdown */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		1011C124ABBA8BE9C0AA2AC2 /* MDView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MDView.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		4135D1734BE9E88018EA134C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E1045356A0140B64FF090335 /* MDView.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MDView.entitlements; sourceTree = "<group>"; };
+		9CF75AC063ABF2338945726C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		F8391DA3F618FB1CB78F3D79 /* MDView.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MDView.xcconfig; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		D5F0A6F44150F82E0FF504AC /* Sources */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Sources;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		201E6A0104FD72AF3E650A8F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2F69FB3ED5FF43A735060F27 /* Markdown in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1EE569B74A57481BB6F7253E = {
+			isa = PBXGroup;
+			children = (
+				D5F0A6F44150F82E0FF504AC /* Sources */,
+				E67233EB7C0A0C1DE899E287 /* Support */,
+				9FDBEDDF7A19E203EE6FCB87 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		9FDBEDDF7A19E203EE6FCB87 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1011C124ABBA8BE9C0AA2AC2 /* MDView.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E67233EB7C0A0C1DE899E287 /* Support */ = {
+			isa = PBXGroup;
+			children = (
+				4135D1734BE9E88018EA134C /* Assets.xcassets */,
+				9CF75AC063ABF2338945726C /* Info.plist */,
+				E1045356A0140B64FF090335 /* MDView.entitlements */,
+				F8391DA3F618FB1CB78F3D79 /* MDView.xcconfig */,
+			);
+			path = Support;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		8E9B1325D6670EC6D521E621 /* MDView */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = AFDE3B9B24E83E7F6DE909C9 /* Build configuration list for PBXNativeTarget "MDView" */;
+			buildPhases = (
+				2F11AA385C7715C246F32B4D /* Sources */,
+				201E6A0104FD72AF3E650A8F /* Frameworks */,
+				C03D59DED55A1B4132FAA394 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				D5F0A6F44150F82E0FF504AC /* Sources */,
+			);
+			name = MDView;
+			packageProductDependencies = (
+				E994CA2028E9D9FBB544C395 /* Markdown */,
+			);
+			productName = MDView;
+			productReference = 1011C124ABBA8BE9C0AA2AC2 /* MDView.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		DEAED201DA0C6502F76AF804 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2700;
+				LastUpgradeCheck = 2700;
+				TargetAttributes = {
+					8E9B1325D6670EC6D521E621 = {
+						CreatedOnToolsVersion = 27.0;
+					};
+				};
+			};
+			buildConfigurationList = C10D23020D9D64A86E055756 /* Build configuration list for PBXProject "MDView" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1EE569B74A57481BB6F7253E;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				7888FF8E2455643058EB0263 /* XCRemoteSwiftPackageReference "swift-markdown" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 9FDBEDDF7A19E203EE6FCB87 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				8E9B1325D6670EC6D521E621 /* MDView */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C03D59DED55A1B4132FAA394 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				3ACFE68C3DAA4CB9C9F12A8B /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		2F11AA385C7715C246F32B4D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		2A1C7EFE573233151DBF8BE0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F8391DA3F618FB1CB78F3D79 /* MDView.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_TESTABILITY = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				ONLY_ACTIVE_ARCH = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		45EF184EC9CD369A3FB79806 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = F8391DA3F618FB1CB78F3D79 /* MDView.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.0;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		EB0D90737DB8B2D2C28C99C7 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Support/MDView.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Support/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+			};
+			name = Debug;
+		};
+		B9AA61973CA4A432BECAC67B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = Support/MDView.entitlements;
+				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_HARDENED_RUNTIME = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = Support/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		C10D23020D9D64A86E055756 /* Build configuration list for PBXProject "MDView" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2A1C7EFE573233151DBF8BE0 /* Debug */,
+				45EF184EC9CD369A3FB79806 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		AFDE3B9B24E83E7F6DE909C9 /* Build configuration list for PBXNativeTarget "MDView" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				EB0D90737DB8B2D2C28C99C7 /* Debug */,
+				B9AA61973CA4A432BECAC67B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7888FF8E2455643058EB0263 /* XCRemoteSwiftPackageReference "swift-markdown" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/apple/swift-markdown.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 0.3.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E994CA2028E9D9FBB544C395 /* Markdown */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7888FF8E2455643058EB0263 /* XCRemoteSwiftPackageReference "swift-markdown" */;
+			productName = Markdown;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = DEAED201DA0C6502F76AF804 /* Project object */;
+}
