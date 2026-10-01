@@ -261,7 +261,7 @@ struct MarkdownWebView: NSViewRepresentable {
             word-wrap: break-word;
             transition: max-width 0.2s ease;
         }
-        h1, h2, h3, h4, h5, h6 { line-height: 1.25; }
+        h1, h2, h3, h4, h5, h6 { line-height: 1.25; scroll-margin-top: 24px; }
         h1 { font-size: 2em; margin: 1.4em 0 0.6em; font-weight: 700; }
         h2 { font-size: 1.5em; margin: 1.4em 0 0.5em; font-weight: 600; }
         h3 { font-size: 1.25em; margin: 1.3em 0 0.5em; font-weight: 600; }

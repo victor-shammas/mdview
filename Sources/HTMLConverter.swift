@@ -5,6 +5,7 @@ struct HTMLConverter: MarkupVisitor {
     typealias Result = String
 
     private var inTableHead = false
+    private var headingIDCounts: [String: Int] = [:]
 
     mutating func defaultVisit(_ markup: any Markup) -> String {
         markup.children.map { visit($0) }.joined()
@@ -18,7 +19,24 @@ struct HTMLConverter: MarkupVisitor {
 
     mutating func visitHeading(_ heading: Heading) -> String {
         let content = heading.children.map { visit($0) }.joined()
-        return "<h\(heading.level)>\(content)</h\(heading.level)>\n"
+        return "<h\(heading.level) id=\"\(headingID(for: heading.plainText).escaped)\">\(content)</h\(heading.level)>\n"
+    }
+
+    /// GitHub-style anchor: lowercase, punctuation dropped, spaces as
+    /// hyphens, and "-1", "-2", ... for repeats, so links like `#setup`
+    /// written for GitHub work here too.
+    private mutating func headingID(for text: String) -> String {
+        var slug = ""
+        for scalar in text.lowercased().unicodeScalars {
+            if CharacterSet.alphanumerics.contains(scalar) || scalar == "-" || scalar == "_" {
+                slug.unicodeScalars.append(scalar)
+            } else if scalar == " " {
+                slug.append("-")
+            }
+        }
+        let count = headingIDCounts[slug, default: 0]
+        headingIDCounts[slug] = count + 1
+        return count == 0 ? slug : "\(slug)-\(count)"
     }
 
     mutating func visitParagraph(_ paragraph: Paragraph) -> String {
