@@ -13,7 +13,9 @@ final class PrintRenderer: NSObject, WKNavigationDelegate {
     private let baseURL: URL?
     private let fileHandler = LocalFileSchemeHandler()
     private let webView: WKWebView
+    private let title: String
     private var completion: ((Data?) -> Void)?
+    private var links = PageLinks(links: [], anchors: [])
 
     /// Printed pages are black on white, and code wraps instead of running
     /// past the margin.
@@ -35,6 +37,7 @@ final class PrintRenderer: NSObject, WKNavigationDelegate {
 
     init(html: String, fileURL: URL?, paper: CGSize) {
         self.paper = paper
+        title = fileURL?.deletingPathExtension().lastPathComponent ?? ""
         printWidth = (paper.width - 2 * margin).rounded()
         pageHeight = paper.height - 2 * margin
 
@@ -132,9 +135,43 @@ final class PrintRenderer: NSObject, WKNavigationDelegate {
                 self?.finish(nil)
                 return
             }
-            self.capture(slices: self.slices(breaks: breaks.map { CGFloat($0) }, totalHeight: CGFloat(total)))
+            let slices = self.slices(breaks: breaks.map { CGFloat($0) }, totalHeight: CGFloat(total))
+            webView.evaluateJavaScript(Self.linksJS) { [weak self] result, _ in
+                guard let self else { return }
+                if let json = (result as? String)?.data(using: .utf8),
+                   let links = try? JSONDecoder().decode(PageLinks.self, from: json) {
+                    self.links = links
+                }
+                self.capture(slices: slices)
+            }
         }
     }
+
+    /// Where the links and heading anchors are, so the PDF can keep them
+    /// clickable: web and mail links open, `#heading` links jump in the PDF.
+    private static let linksJS = """
+        (function() {
+            var sx = window.scrollX, sy = window.scrollY;
+            var links = [];
+            document.querySelectorAll('a[href]').forEach(function(a) {
+                var href = a.getAttribute('href');
+                var target;
+                if (href.charAt(0) === '#') target = {anchor: decodeURIComponent(href.slice(1))};
+                else if (/^(https?|mailto):/i.test(a.href)) target = {url: a.href};
+                else return;
+                var rects = [];
+                Array.from(a.getClientRects()).forEach(function(r) {
+                    if (r.width > 0 && r.height > 0) rects.push([r.left + sx, r.top + sy, r.width, r.height]);
+                });
+                if (rects.length) links.push({target: target, rects: rects});
+            });
+            var anchors = [];
+            document.querySelectorAll('[id]').forEach(function(el) {
+                anchors.push({id: el.id, y: el.getBoundingClientRect().top + sy});
+            });
+            return JSON.stringify({links: links, anchors: anchors});
+        })()
+        """
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
         finish(nil)
@@ -213,7 +250,9 @@ final class PrintRenderer: NSObject, WKNavigationDelegate {
         let pageData = NSMutableData()
         guard let consumer = CGDataConsumer(data: pageData) else { return nil }
         var pageBox = CGRect(origin: .zero, size: paper)
-        guard let ctx = CGContext(consumer: consumer, mediaBox: &pageBox, nil) else { return nil }
+        let info = [kCGPDFContextTitle: title, kCGPDFContextCreator: "MDView"] as CFDictionary
+        guard let ctx = CGContext(consumer: consumer, mediaBox: &pageBox, info) else { return nil }
+        let anchorIDs = Set(links.anchors.map(\.id))
 
         for capture in captures {
             guard let source = capture.document.page(at: 1) else { continue }
@@ -229,12 +268,57 @@ final class PrintRenderer: NSObject, WKNavigationDelegate {
                 ctx.translateBy(x: margin, y: paper.height - margin - sourceHeight + (slice.start - sourceTop))
                 ctx.drawPDFPage(source)
                 ctx.restoreGState()
+                addLinks(to: ctx, for: slice, anchorIDs: anchorIDs)
                 ctx.endPage()
             }
         }
         ctx.closePDF()
         return pageData as Data
     }
+}
+
+extension PrintRenderer {
+    /// Converts a point in the laid-out document to the page showing `slice`.
+    private func pageY(_ y: CGFloat, in slice: PrintSlice) -> CGFloat {
+        paper.height - margin - (y - slice.start)
+    }
+
+    private func addLinks(to ctx: CGContext, for slice: PrintSlice, anchorIDs: Set<String>) {
+        for anchor in links.anchors where anchor.y >= slice.start && anchor.y < slice.end {
+            ctx.addDestination(anchor.id as CFString, at: CGPoint(x: margin, y: pageY(anchor.y, in: slice)))
+        }
+        for link in links.links {
+            for r in link.rects where r.count == 4 {
+                let top = max(r[1], slice.start)
+                let bottom = min(r[1] + r[3], slice.end)
+                guard bottom > top else { continue }
+                let rect = CGRect(x: margin + r[0], y: pageY(bottom, in: slice), width: r[2], height: bottom - top)
+                if let url = link.target.url.flatMap(URL.init(string:)) {
+                    ctx.setURL(url as CFURL, for: rect)
+                } else if let anchor = link.target.anchor, anchorIDs.contains(anchor) {
+                    ctx.setDestination(anchor as CFString, for: rect)
+                }
+            }
+        }
+    }
+}
+
+/// Links and heading anchors in the laid-out document, in page pixels.
+private struct PageLinks: Decodable {
+    struct Link: Decodable {
+        struct Target: Decodable {
+            var url: String?
+            var anchor: String?
+        }
+        var target: Target
+        var rects: [[CGFloat]]
+    }
+    struct Anchor: Decodable {
+        var id: String
+        var y: CGFloat
+    }
+    var links: [Link]
+    var anchors: [Anchor]
 }
 
 /// A vertical slice of the laid-out document that becomes one printed page.

@@ -212,6 +212,12 @@ struct MDViewApp: App {
                 }
             }
             CommandGroup(replacing: .printItem) {
+                Button("Export as PDF\u{2026}") {
+                    appDelegate.exportKeyWindowAsPDF()
+                }
+
+                Divider()
+
                 Button("Page Setup\u{2026}") {
                     NSPageLayout().runModal()
                 }
@@ -599,6 +605,37 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
     func printKeyWindow() {
         if let window = NSApp.keyWindow { print(window) }
+    }
+
+    func exportKeyWindowAsPDF() {
+        guard printRenderer == nil,
+              let window = NSApp.keyWindow,
+              let document = windowDocuments[ObjectIdentifier(window)],
+              let html = document.renderedHTML,
+              let fileURL = document.fileURL else { return }
+
+        let panel = NSSavePanel()
+        panel.allowedContentTypes = [.pdf]
+        panel.nameFieldStringValue = fileURL.deletingPathExtension().lastPathComponent + ".pdf"
+        panel.directoryURL = fileURL.deletingLastPathComponent()
+        panel.beginSheetModal(for: window) { [weak self] response in
+            guard let self, response == .OK, let destination = panel.url else { return }
+            // Same layout as printing: Page Setup paper size, current font and size.
+            let renderer = PrintRenderer(html: html, fileURL: fileURL, paper: NSPrintInfo.shared.paperSize)
+            self.printRenderer = renderer
+            renderer.render { [weak self] pdfData in
+                self?.printRenderer = nil
+                do {
+                    guard let pdfData else { throw CocoaError(.fileWriteUnknown) }
+                    try pdfData.write(to: destination, options: .atomic)
+                } catch {
+                    let alert = NSAlert()
+                    alert.messageText = "The PDF couldn\u{2019}t be saved."
+                    alert.informativeText = (error as NSError).localizedFailureReason ?? error.localizedDescription
+                    alert.beginSheetModal(for: window)
+                }
+            }
+        }
     }
 
     private func print(_ window: NSWindow) {

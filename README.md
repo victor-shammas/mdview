@@ -13,6 +13,7 @@ A lightweight Markdown viewer for macOS. Opens `.md`, `.markdown`, and `.txt` fi
 - Multiple windows (each file gets its own window)
 - Find in document (Cmd+F)
 - Print / Save as PDF (Cmd+P) on the paper size from Page Setup, breaking pages between lines
+- File > Export as PDF with clickable links (web, email and links to headings)
 - Recently Read file list
 - Zoom in/out and content width adjustment
 - Font selection: System Sans, System Serif, Georgia, Palatino, Charter
