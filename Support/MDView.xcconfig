@@ -2,7 +2,7 @@
 // (install.sh reads these simple `KEY = value` lines).
 PRODUCT_NAME = MDView
 PRODUCT_BUNDLE_IDENTIFIER = com.victorshammas.mdview
-MARKETING_VERSION = 1.1.1
+MARKETING_VERSION = 1.2.0
 // Must increase with every App Store Connect upload.
 CURRENT_PROJECT_VERSION = 1
 MACOSX_DEPLOYMENT_TARGET = 14.0
