@@ -70,7 +70,8 @@ The app uses a hybrid SwiftUI + AppKit approach:
 - Preferences (font, zoom, width, appearance, alignment) persist via `UserDefaults`
 - `Sources/Shared` (Markdown conversion and the page template) is shared with the **Quick Look extension** in `QuickLook/`
 - The app is sandboxed. Images next to a document load through a custom URL scheme, after a one-time permission per folder. The page itself allows no scripts (Content Security Policy), since documents can contain raw HTML
+- The app icon is drawn by `make_icon.swift` (run `swift make_icon.swift` from the repo root), which writes `AppIcon.icns` and the Xcode asset catalog
 
 ## License
 
-[MIT](LICENSE)
+[MIT](LICENSE). The icon's lettering uses [Figtree](https://github.com/erikdkennedy/figtree), included in `IconSource/` under the [SIL Open Font License](IconSource/OFL.txt). The font is only used to draw the icon and isn't part of the app.
