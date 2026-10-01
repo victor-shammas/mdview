@@ -39,10 +39,12 @@
             <string>Markdown Document</string>
             <key>CFBundleTypeRole</key>
             <string>Viewer</string>
+            <!-- Plainview is a natural default for Markdown. -->
+            <key>LSHandlerRank</key>
+            <string>Default</string>
             <key>LSItemContentTypes</key>
             <array>
                 <string>net.daringfireball.markdown</string>
-                <string>public.plain-text</string>
             </array>
             <key>CFBundleTypeExtensions</key>
             <array>
@@ -50,6 +52,22 @@
                 <string>markdown</string>
                 <string>mdown</string>
                 <string>mkd</string>
+            </array>
+        </dict>
+        <dict>
+            <key>CFBundleTypeName</key>
+            <string>Plain Text Document</string>
+            <key>CFBundleTypeRole</key>
+            <string>Viewer</string>
+            <!-- Offered in Open With, without competing with TextEdit. -->
+            <key>LSHandlerRank</key>
+            <string>Alternate</string>
+            <key>LSItemContentTypes</key>
+            <array>
+                <string>public.plain-text</string>
+            </array>
+            <key>CFBundleTypeExtensions</key>
+            <array>
                 <string>txt</string>
             </array>
         </dict>
