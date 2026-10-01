@@ -198,6 +198,11 @@ struct MDViewApp: App {
                 }
             }
             CommandGroup(replacing: .printItem) {
+                Button("Page Setup\u{2026}") {
+                    NSPageLayout().runModal()
+                }
+                .keyboardShortcut("p", modifiers: [.command, .shift])
+
                 Button("Print\u{2026}") {
                     appDelegate.printKeyWindow()
                 }
@@ -447,7 +452,7 @@ class PDFPrintView: NSView {
 
     override func rectForPage(_ pageNum: Int) -> NSRect {
         guard let page = document.page(at: pageNum) else {
-            return NSRect(x: 0, y: 0, width: 612, height: 792)
+            return NSRect(origin: .zero, size: NSPrintInfo.shared.paperSize)
         }
         return page.getBoxRect(.mediaBox)
     }
@@ -578,16 +583,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
     }
 
     func printKeyWindow() {
-        guard let window = NSApp.keyWindow,
-              let webView = findWebView(in: window.contentView) else { return }
+        if let window = NSApp.keyWindow { print(window) }
+    }
+
+    private func print(_ window: NSWindow) {
+        guard let webView = findWebView(in: window.contentView) else { return }
 
         let appState = AppState.shared
         let savedMaxWidth = Int(appState.maxWidth)
         let savedAppearance = appState.appearance
-        let printWidth: CGFloat = 540
-        let pageHeight: CGFloat = 720
+        // Lay pages out for the paper chosen in Page Setup (A4, Letter, ...)
+        // with half-inch margins.
+        let paper = NSPrintInfo.shared.paperSize
+        let margin: CGFloat = 36
+        let printWidth = (paper.width - 2 * margin).rounded()
+        let pageHeight = paper.height - 2 * margin
 
+        // Transitions are disabled so the layout is final when measured below.
         let narrowJS = """
+            document.documentElement.style.transition = 'none';
+            document.body.style.transition = 'none';
             document.body.style.maxWidth = '\(Int(printWidth))px';
             document.body.style.margin = '0';
             document.body.style.padding = '0';
@@ -603,26 +618,65 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
         webView.evaluateJavaScript(narrowJS) { _, _ in
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                // Page breaks go between lines, never through one: merge the
+                // boxes of all text lines and images into horizontal bands and
+                // break at the last band that starts before the page is full.
+                // A heading is kept with the line that follows it.
                 let breakJS = """
                     (function() {
                         var ph = \(pageHeight);
-                        var els = document.body.children;
-                        var breaks = [];
-                        var next = ph;
-                        var total = document.body.scrollHeight;
-                        for (var i = 0; i < els.length; i++) {
-                            var top = els[i].getBoundingClientRect().top + window.scrollY;
-                            if (top >= next && top > 0) {
-                                breaks.push(Math.floor(top));
-                                next = top + ph;
-                            }
+                        var sy = window.scrollY;
+                        var total = Math.ceil(document.body.scrollHeight);
+                        var boxes = [];
+                        function add(r) {
+                            if (r.height > 0) boxes.push([r.top + sy, r.bottom + sy]);
                         }
-                        return JSON.stringify({b: breaks, h: Math.ceil(total)});
+                        var walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+                        var range = document.createRange();
+                        while (walker.nextNode()) {
+                            if (!walker.currentNode.textContent.trim()) continue;
+                            range.selectNodeContents(walker.currentNode);
+                            var rects = range.getClientRects();
+                            for (var i = 0; i < rects.length; i++) add(rects[i]);
+                        }
+                        document.querySelectorAll('img, hr, input').forEach(function(el) {
+                            add(el.getBoundingClientRect());
+                        });
+                        boxes.sort(function(a, b) { return a[0] - b[0]; });
+                        var bands = [];
+                        boxes.forEach(function(b) {
+                            var last = bands[bands.length - 1];
+                            if (last && b[0] < last[1]) last[1] = Math.max(last[1], b[1]);
+                            else bands.push([b[0], b[1]]);
+                        });
+                        var avoid = {};
+                        document.querySelectorAll('h1, h2, h3, h4, h5, h6').forEach(function(h) {
+                            var bottom = h.getBoundingClientRect().bottom + sy;
+                            for (var i = 0; i < bands.length; i++) {
+                                if (bands[i][0] >= bottom - 1) { avoid[i] = true; break; }
+                            }
+                        });
+                        var breaks = [];
+                        var start = 0;
+                        while (total - start > ph) {
+                            var limit = start + ph;
+                            var best = -1;
+                            for (var i = 0; i < bands.length && bands[i][0] <= limit; i++) {
+                                if (bands[i][0] > start + 1 && !avoid[i]) best = bands[i][0];
+                            }
+                            if (best < 0) best = limit;
+                            best = Math.floor(best);
+                            breaks.push(best);
+                            start = best;
+                        }
+                        return JSON.stringify({b: breaks, h: total});
                     })()
                 """
 
                 webView.evaluateJavaScript(breakJS) { result, _ in
                     let restoreJS = """
+                        document.documentElement.style.transition = '';
+                        document.body.style.transition = '';
                         document.body.style.maxWidth = '';
                         document.body.style.margin = '';
                         document.body.style.padding = '';
@@ -676,14 +730,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
 
                             let pageData = NSMutableData()
                             guard let consumer = CGDataConsumer(data: pageData) else { return }
-                            var letterBox = CGRect(x: 0, y: 0, width: 612, height: 792)
-                            guard let ctx = CGContext(consumer: consumer, mediaBox: &letterBox, nil) else { return }
+                            var pageBox = CGRect(origin: .zero, size: paper)
+                            guard let ctx = CGContext(consumer: consumer, mediaBox: &pageBox, nil) else { return }
 
-                            for (yStart, _) in segments {
-                                ctx.beginPage(mediaBox: &letterBox)
+                            for (yStart, yEnd) in segments {
+                                ctx.beginPage(mediaBox: &pageBox)
                                 ctx.saveGState()
-                                ctx.clip(to: CGRect(x: 36, y: 36, width: 540, height: 720))
-                                ctx.translateBy(x: 36, y: 756 - totalHeight + yStart)
+                                // Show only this page's slice, so the start of the next one
+                                // doesn't peek in below a short page.
+                                let sliceHeight = yEnd - yStart
+                                ctx.clip(to: CGRect(x: margin, y: paper.height - margin - sliceHeight, width: printWidth, height: sliceHeight))
+                                ctx.translateBy(x: margin, y: paper.height - margin - totalHeight + yStart)
                                 ctx.drawPDFPage(srcPage)
                                 ctx.restoreGState()
                                 ctx.endPage()
