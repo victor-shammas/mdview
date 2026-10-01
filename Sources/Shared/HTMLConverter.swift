@@ -6,6 +6,12 @@ struct HTMLConverter: MarkupVisitor {
 
     private var inTableHead = false
     private var headingIDCounts: [String: Int] = [:]
+    /// Image sources in document order, as written in the Markdown.
+    private(set) var imageSources: [String] = []
+
+    static func escape(_ text: String) -> String {
+        text.escaped
+    }
 
     mutating func defaultVisit(_ markup: any Markup) -> String {
         markup.children.map { visit($0) }.joined()
@@ -107,6 +113,7 @@ struct HTMLConverter: MarkupVisitor {
 
     mutating func visitImage(_ image: Image) -> String {
         let alt = image.children.map { visit($0) }.joined()
+        imageSources.append(image.source ?? "")
         let src = (image.source ?? "").escaped
         let title = image.title.map { " title=\"\($0.escaped)\"" } ?? ""
         return "<img src=\"\(src)\" alt=\"\(alt)\"\(title)>\n"
