@@ -2,14 +2,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "mdview",
+    name: "plainview",
     platforms: [.macOS(.v14)],
     dependencies: [
         .package(url: "https://github.com/apple/swift-markdown.git", from: "0.3.0"),
     ],
     targets: [
         .executableTarget(
-            name: "mdview",
+            name: "plainview",
             dependencies: [
                 .product(name: "Markdown", package: "swift-markdown"),
             ],

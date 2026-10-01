@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "8E9B1325D6670EC6D521E621"
-               BuildableName = "MDView.app"
-               BlueprintName = "MDView"
-               ReferencedContainer = "container:MDView.xcodeproj">
+               BuildableName = "Plainview.app"
+               BlueprintName = "Plainview"
+               ReferencedContainer = "container:Plainview.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -43,9 +43,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
                BlueprintIdentifier = "8E9B1325D6670EC6D521E621"
-               BuildableName = "MDView.app"
-               BlueprintName = "MDView"
-               ReferencedContainer = "container:MDView.xcodeproj">
+               BuildableName = "Plainview.app"
+               BlueprintName = "Plainview"
+               ReferencedContainer = "container:Plainview.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -60,9 +60,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
                BlueprintIdentifier = "8E9B1325D6670EC6D521E621"
-               BuildableName = "MDView.app"
-               BlueprintName = "MDView"
-               ReferencedContainer = "container:MDView.xcodeproj">
+               BuildableName = "Plainview.app"
+               BlueprintName = "Plainview"
+               ReferencedContainer = "container:Plainview.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

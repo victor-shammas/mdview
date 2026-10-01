@@ -38,13 +38,13 @@ extension URL {
 
 /// Serves images next to the Markdown file through a custom URL scheme.
 ///
-/// Pages are loaded with an `mdview-file:` base URL, so relative paths like
+/// Pages are loaded with an `plainview-file:` base URL, so relative paths like
 /// `images/foo.png` (and `../foo.png`) resolve to requests that come here. The
 /// app reads the file itself, which works under the App Sandbox once the user
 /// has granted access to the folder, and reports denied reads so the window
 /// can offer to ask for that access.
 final class LocalFileSchemeHandler: NSObject, WKURLSchemeHandler {
-    static let scheme = "mdview-file"
+    static let scheme = "plainview-file"
 
     var onAccessDenied: ((URL) -> Void)?
     /// Tasks still waiting on a file read, so stopped ones can be skipped.

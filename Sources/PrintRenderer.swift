@@ -245,7 +245,7 @@ final class PrintRenderer: NSObject, WKNavigationDelegate {
         let pageData = NSMutableData()
         guard let consumer = CGDataConsumer(data: pageData) else { return nil }
         var pageBox = CGRect(origin: .zero, size: paper)
-        let info = [kCGPDFContextTitle: title, kCGPDFContextCreator: "MDView"] as CFDictionary
+        let info = [kCGPDFContextTitle: title, kCGPDFContextCreator: "Plainview"] as CFDictionary
         guard let ctx = CGContext(consumer: consumer, mediaBox: &pageBox, info) else { return nil }
         let anchorIDs = Set(links.anchors.map(\.id))
 

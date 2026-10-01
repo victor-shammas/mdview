@@ -3,7 +3,7 @@ set -e
 cd "$(dirname "$0")"
 
 # Name, bundle ID and version come from the same file the Xcode project uses.
-setting() { sed -n "s/^$1 *= *//p" Support/MDView.xcconfig; }
+setting() { sed -n "s/^$1 *= *//p" Support/Plainview.xcconfig; }
 NAME="$(setting PRODUCT_NAME)"
 
 APP="${1:-/Applications}/$NAME.app"
@@ -18,17 +18,17 @@ trap 'rm -rf "$TMP"' EXIT
 for ARCH in arm64 x86_64; do
     echo "Building $ARCH..."
     swift build -c release --arch "$ARCH"
-    cp "$(swift build -c release --arch "$ARCH" --show-bin-path)/mdview" "$TMP/mdview-$ARCH"
+    cp "$(swift build -c release --arch "$ARCH" --show-bin-path)/plainview" "$TMP/plainview-$ARCH"
 done
 
 echo "Creating universal binary..."
-lipo -create "$TMP/mdview-arm64" "$TMP/mdview-x86_64" -output "$TMP/mdview"
+lipo -create "$TMP/plainview-arm64" "$TMP/plainview-x86_64" -output "$TMP/plainview"
 
 echo "Creating app bundle..."
 rm -rf "$APP"
 mkdir -p "$MACOS" "$RESOURCES"
 
-cp "$TMP/mdview" "$MACOS/$NAME"
+cp "$TMP/plainview" "$MACOS/$NAME"
 
 if [ -f AppIcon.icns ]; then
     cp AppIcon.icns "$RESOURCES/AppIcon.icns"
@@ -43,6 +43,6 @@ sed -e "s/\$(PRODUCT_NAME)/$NAME/g" \
     Support/Info.plist > "$CONTENTS/Info.plist"
 
 # Ad-hoc signed, but sandboxed with the same entitlements as the App Store build.
-codesign --force -s - --entitlements Support/MDView.entitlements "$APP"
+codesign --force -s - --entitlements Support/Plainview.entitlements "$APP"
 
 echo "$NAME installed to $APP"

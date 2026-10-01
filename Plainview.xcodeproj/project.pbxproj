@@ -11,7 +11,7 @@
 		2F69FB3ED5FF43A735060F27 /* Markdown in Frameworks */ = {isa = PBXBuildFile; productRef = E994CA2028E9D9FBB544C395 /* Markdown */; };
 		C4F2D3E5B6A71829304B5C6D /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = B3E1C2D4A5F60718293A4B5C /* PrivacyInfo.xcprivacy */; };
 		3ACFE68C3DAA4CB9C9F12A8B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4135D1734BE9E88018EA134C /* Assets.xcassets */; };
-		A7508A301357F41D88C1BB18 /* MDViewQuickLook.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C6DCCF70338566B6EC152F38 /* MDViewQuickLook.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		A7508A301357F41D88C1BB18 /* PlainviewQuickLook.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C6DCCF70338566B6EC152F38 /* PlainviewQuickLook.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -20,7 +20,7 @@
 			containerPortal = DEAED201DA0C6502F76AF804 /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 45A323975BC291DA934FE5F5;
-			remoteInfo = MDViewQuickLook;
+			remoteInfo = PlainviewQuickLook;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -31,7 +31,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				A7508A301357F41D88C1BB18 /* MDViewQuickLook.appex in Embed Foundation Extensions */,
+				A7508A301357F41D88C1BB18 /* PlainviewQuickLook.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -39,24 +39,24 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		1011C124ABBA8BE9C0AA2AC2 /* MDView.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MDView.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1011C124ABBA8BE9C0AA2AC2 /* Plainview.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Plainview.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		4135D1734BE9E88018EA134C /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9CF75AC063ABF2338945726C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B3E1C2D4A5F60718293A4B5C /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		C6DCCF70338566B6EC152F38 /* MDViewQuickLook.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MDViewQuickLook.appex; sourceTree = BUILT_PRODUCTS_DIR; };
-		E1045356A0140B64FF090335 /* MDView.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MDView.entitlements; sourceTree = "<group>"; };
-		F8391DA3F618FB1CB78F3D79 /* MDView.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = MDView.xcconfig; sourceTree = "<group>"; };
+		C6DCCF70338566B6EC152F38 /* PlainviewQuickLook.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = PlainviewQuickLook.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E1045356A0140B64FF090335 /* Plainview.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Plainview.entitlements; sourceTree = "<group>"; };
+		F8391DA3F618FB1CB78F3D79 /* Plainview.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Plainview.xcconfig; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		45D2775DCF6FFB9B5210E988 /* Exceptions for "QuickLook" folder in "MDViewQuickLook" target */ = {
+		45D2775DCF6FFB9B5210E988 /* Exceptions for "QuickLook" folder in "PlainviewQuickLook" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
 			);
-			target = 45A323975BC291DA934FE5F5 /* MDViewQuickLook */;
+			target = 45A323975BC291DA934FE5F5 /* PlainviewQuickLook */;
 		};
-		872D22C4368CC84DE067E9E9 /* Exceptions for "Sources" folder in "MDViewQuickLook" target */ = {
+		872D22C4368CC84DE067E9E9 /* Exceptions for "Sources" folder in "PlainviewQuickLook" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Shared/HTMLConverter.swift,
@@ -64,7 +64,7 @@
 				Shared/PageStyle.swift,
 				Shared/PageTemplate.swift,
 			);
-			target = 45A323975BC291DA934FE5F5 /* MDViewQuickLook */;
+			target = 45A323975BC291DA934FE5F5 /* PlainviewQuickLook */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
@@ -72,7 +72,7 @@
 		D5F0A6F44150F82E0FF504AC /* Sources */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				872D22C4368CC84DE067E9E9 /* Exceptions for "Sources" folder in "MDViewQuickLook" target */,
+				872D22C4368CC84DE067E9E9 /* Exceptions for "Sources" folder in "PlainviewQuickLook" target */,
 			);
 			path = Sources;
 			sourceTree = "<group>";
@@ -80,7 +80,7 @@
 		EA7E20F66B785865C486A86F /* QuickLook */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
-				45D2775DCF6FFB9B5210E988 /* Exceptions for "QuickLook" folder in "MDViewQuickLook" target */,
+				45D2775DCF6FFB9B5210E988 /* Exceptions for "QuickLook" folder in "PlainviewQuickLook" target */,
 			);
 			path = QuickLook;
 			sourceTree = "<group>";
@@ -120,8 +120,8 @@
 		9FDBEDDF7A19E203EE6FCB87 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				1011C124ABBA8BE9C0AA2AC2 /* MDView.app */,
-				C6DCCF70338566B6EC152F38 /* MDViewQuickLook.appex */,
+				1011C124ABBA8BE9C0AA2AC2 /* Plainview.app */,
+				C6DCCF70338566B6EC152F38 /* PlainviewQuickLook.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -131,8 +131,8 @@
 			children = (
 				4135D1734BE9E88018EA134C /* Assets.xcassets */,
 				9CF75AC063ABF2338945726C /* Info.plist */,
-				E1045356A0140B64FF090335 /* MDView.entitlements */,
-				F8391DA3F618FB1CB78F3D79 /* MDView.xcconfig */,
+				E1045356A0140B64FF090335 /* Plainview.entitlements */,
+				F8391DA3F618FB1CB78F3D79 /* Plainview.xcconfig */,
 				B3E1C2D4A5F60718293A4B5C /* PrivacyInfo.xcprivacy */,
 			);
 			path = Support;
@@ -141,9 +141,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		45A323975BC291DA934FE5F5 /* MDViewQuickLook */ = {
+		45A323975BC291DA934FE5F5 /* PlainviewQuickLook */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 4ACA0FA8DBE445DD9B25D31C /* Build configuration list for PBXNativeTarget "MDViewQuickLook" */;
+			buildConfigurationList = 4ACA0FA8DBE445DD9B25D31C /* Build configuration list for PBXNativeTarget "PlainviewQuickLook" */;
 			buildPhases = (
 				418A713FC5EC8BDB2B184B2F /* Sources */,
 				997D46D5F1BCE4AA246C0FCA /* Frameworks */,
@@ -156,17 +156,17 @@
 			fileSystemSynchronizedGroups = (
 				EA7E20F66B785865C486A86F /* QuickLook */,
 			);
-			name = MDViewQuickLook;
+			name = PlainviewQuickLook;
 			packageProductDependencies = (
 				C09DE6CF2307485AE0961D73 /* Markdown */,
 			);
-			productName = MDViewQuickLook;
-			productReference = C6DCCF70338566B6EC152F38 /* MDViewQuickLook.appex */;
+			productName = PlainviewQuickLook;
+			productReference = C6DCCF70338566B6EC152F38 /* PlainviewQuickLook.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
-		8E9B1325D6670EC6D521E621 /* MDView */ = {
+		8E9B1325D6670EC6D521E621 /* Plainview */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = AFDE3B9B24E83E7F6DE909C9 /* Build configuration list for PBXNativeTarget "MDView" */;
+			buildConfigurationList = AFDE3B9B24E83E7F6DE909C9 /* Build configuration list for PBXNativeTarget "Plainview" */;
 			buildPhases = (
 				2F11AA385C7715C246F32B4D /* Sources */,
 				201E6A0104FD72AF3E650A8F /* Frameworks */,
@@ -181,12 +181,12 @@
 			fileSystemSynchronizedGroups = (
 				D5F0A6F44150F82E0FF504AC /* Sources */,
 			);
-			name = MDView;
+			name = Plainview;
 			packageProductDependencies = (
 				E994CA2028E9D9FBB544C395 /* Markdown */,
 			);
-			productName = MDView;
-			productReference = 1011C124ABBA8BE9C0AA2AC2 /* MDView.app */;
+			productName = Plainview;
+			productReference = 1011C124ABBA8BE9C0AA2AC2 /* Plainview.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -207,7 +207,7 @@
 					};
 				};
 			};
-			buildConfigurationList = C10D23020D9D64A86E055756 /* Build configuration list for PBXProject "MDView" */;
+			buildConfigurationList = C10D23020D9D64A86E055756 /* Build configuration list for PBXProject "Plainview" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -224,8 +224,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				8E9B1325D6670EC6D521E621 /* MDView */,
-				45A323975BC291DA934FE5F5 /* MDViewQuickLook */,
+				8E9B1325D6670EC6D521E621 /* Plainview */,
+				45A323975BC291DA934FE5F5 /* PlainviewQuickLook */,
 			);
 		};
 /* End PBXProject section */
@@ -269,7 +269,7 @@
 /* Begin PBXTargetDependency section */
 		1622FB2AB52D3F0453AA782C /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 45A323975BC291DA934FE5F5 /* MDViewQuickLook */;
+			target = 45A323975BC291DA934FE5F5 /* PlainviewQuickLook */;
 			targetProxy = 8AA0480DBFD7DA56B728B5AF /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -277,7 +277,7 @@
 /* Begin XCBuildConfiguration section */
 		2A1C7EFE573233151DBF8BE0 /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F8391DA3F618FB1CB78F3D79 /* MDView.xcconfig */;
+			baseConfigurationReference = F8391DA3F618FB1CB78F3D79 /* Plainview.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -301,7 +301,7 @@
 		};
 		45EF184EC9CD369A3FB79806 /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F8391DA3F618FB1CB78F3D79 /* MDView.xcconfig */;
+			baseConfigurationReference = F8391DA3F618FB1CB78F3D79 /* Plainview.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
@@ -333,7 +333,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited).QuickLook";
-				PRODUCT_NAME = MDViewQuickLook;
+				PRODUCT_NAME = PlainviewQuickLook;
 				SKIP_INSTALL = YES;
 			};
 			name = Release;
@@ -351,7 +351,7 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "$(inherited).QuickLook";
-				PRODUCT_NAME = MDViewQuickLook;
+				PRODUCT_NAME = PlainviewQuickLook;
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
@@ -360,7 +360,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Support/MDView.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Support/Plainview.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -376,7 +376,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = Support/MDView.entitlements;
+				CODE_SIGN_ENTITLEMENTS = Support/Plainview.entitlements;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				GENERATE_INFOPLIST_FILE = NO;
@@ -391,7 +391,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		4ACA0FA8DBE445DD9B25D31C /* Build configuration list for PBXNativeTarget "MDViewQuickLook" */ = {
+		4ACA0FA8DBE445DD9B25D31C /* Build configuration list for PBXNativeTarget "PlainviewQuickLook" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				7B702F8103067949C495FEFF /* Debug */,
@@ -400,7 +400,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		AFDE3B9B24E83E7F6DE909C9 /* Build configuration list for PBXNativeTarget "MDView" */ = {
+		AFDE3B9B24E83E7F6DE909C9 /* Build configuration list for PBXNativeTarget "Plainview" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				EB0D90737DB8B2D2C28C99C7 /* Debug */,
@@ -409,7 +409,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		C10D23020D9D64A86E055756 /* Build configuration list for PBXProject "MDView" */ = {
+		C10D23020D9D64A86E055756 /* Build configuration list for PBXProject "Plainview" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2A1C7EFE573233151DBF8BE0 /* Debug */,

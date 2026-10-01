@@ -179,7 +179,7 @@ class DocumentState: ObservableObject {
 // MARK: - App
 
 @main
-struct MDViewApp: App {
+struct PlainviewApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var appState = AppState.shared
 
@@ -415,7 +415,7 @@ class AppState: ObservableObject {
     /// it can be shown, and remembers the choice across launches.
     func requestFolderAccess(suggested: URL, for window: NSWindow?) {
         let panel = NSOpenPanel()
-        panel.message = "Choose a folder to let MDView show the images stored in it."
+        panel.message = "Choose a folder to let Plainview show the images stored in it."
         panel.prompt = "Allow"
         panel.canChooseFiles = false
         panel.canChooseDirectories = true
@@ -565,7 +565,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegate {
         window.isReleasedWhenClosed = false
         window.delegate = self
         window.contentView = NSHostingView(rootView: rootView)
-        window.title = document.fileName ?? (Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "MDView")
+        window.title = document.fileName ?? (Bundle.main.object(forInfoDictionaryKey: "CFBundleName") as? String ?? "Plainview")
         document.window = window
 
         // Reuse the last size the user chose; otherwise a reading-width window

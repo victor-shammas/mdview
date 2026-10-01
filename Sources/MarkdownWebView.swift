@@ -290,7 +290,7 @@ struct MarkdownWebView: NSViewRepresentable {
             }
         }
 
-        /// Markdown links open in MDView and documents in their default app.
+        /// Markdown links open in Plainview and documents in their default app.
         /// Anything else, such as an app or a script, is only shown in Finder,
         /// so clicking a link in a file can't run it.
         static func openLocalLink(_ fileURL: URL) {

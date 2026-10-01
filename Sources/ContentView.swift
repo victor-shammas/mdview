@@ -87,7 +87,7 @@ struct FolderAccessBar: View {
         HStack(spacing: 8) {
             Image(systemName: "photo")
                 .foregroundStyle(.secondary)
-            Text("Some images are in \u{201C}\(folder.lastPathComponent)\u{201D}, which MDView needs permission to read.")
+            Text("Some images are in \u{201C}\(folder.lastPathComponent)\u{201D}, which Plainview needs permission to read.")
                 .font(.system(size: 12))
                 .lineLimit(1)
                 .truncationMode(.middle)

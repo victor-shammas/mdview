@@ -1,5 +1,5 @@
 #!/usr/bin/swift
-// Draws the MDView app icon: an amber ".md" in Figtree Black on an espresso
+// Draws the Plainview app icon: an amber ".md" in Figtree Black on an espresso
 // squircle.
 // Run from the repo root: swift make_icon.swift
 // Writes AppIcon.iconset, AppIcon.icns (used by install.sh) and the Xcode
