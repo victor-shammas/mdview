@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Support · Plainview</title>
+<meta name="description" content="Plainview support: opening files, Quick Look, images, printing, keyboard shortcuts and FAQ for the Markdown reader for Mac.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="icon.png" alt="" width="30" height="30">Plainview</a>
+    <nav class="nav" aria-label="Main">
+      <a href="./" class="hide-sm">Home</a>
+      <a href="support.html" aria-current="page">Support</a>
+      <a href="privacy.html">Privacy</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc">
+  <div class="wrap narrow">
+    <h1>Support</h1>
+    <p>Something not working? The answers below cover almost everything. If not, email <a href="mailto:contact@victorshammas.com?subject=Plainview%20support">contact@victorshammas.com</a>. I read every message.</p>
+    <ul class="toc">
+      <li><a href="#start">Opening files</a></li>
+      <li><a href="#quicklook">Quick Look</a></li>
+      <li><a href="#reading">Reading</a></li>
+      <li><a href="#images">Images &amp; links</a></li>
+      <li><a href="#print">Printing &amp; PDF</a></li>
+      <li><a href="#shortcuts">Keyboard shortcuts</a></li>
+      <li><a href="#contact">Contact</a></li>
+    </ul>
+
+    <h2 id="start">Opening files</h2>
+    <details open>
+      <summary>How do I open a file?</summary>
+      <p>Any of these:</p>
+      <ul>
+        <li>Double-click a Markdown file in Finder (once Plainview is your default app for it, see below).</li>
+        <li>Drag the file onto Plainview's window or its Dock icon.</li>
+        <li>File › <em>Open…</em> (<kbd>⌘O</kbd>).</li>
+        <li>File › <em>Recently Read</em> for the last 10 files.</li>
+      </ul>
+      <p>Each file opens in its own window.</p>
+    </details>
+    <details>
+      <summary>How do I make Plainview open Markdown files when I double-click them?</summary>
+      <ol>
+        <li>In Finder, select any <code>.md</code> file and choose File › <em>Get Info</em> (<kbd>⌘I</kbd>).</li>
+        <li>Under <em>Open with</em>, choose Plainview.</li>
+        <li>Click <em>Change All…</em>, then <em>Continue</em>.</li>
+      </ol>
+      <p>Repeat for <code>.markdown</code> or <code>.txt</code> files if you want those to open in Plainview too.</p>
+    </details>
+    <details>
+      <summary>Which files can Plainview open?</summary>
+      <p>Markdown files ending in <code>.md</code>, <code>.markdown</code>, <code>.mdown</code> or <code>.mkd</code>, and plain text files ending in <code>.txt</code>. Files in UTF-8 work best; older files in other encodings, such as Windows-1252 or UTF-16, are usually detected automatically.</p>
+    </details>
+    <details>
+      <summary>Can I edit a document in Plainview?</summary>
+      <p>No, and that's on purpose: Plainview is a reader, so you can't change a document by accident. To edit, open the file in any text editor and keep Plainview next to it. Plainview reloads the document every time you save.</p>
+    </details>
+    <details>
+      <summary>Which Markdown features are supported?</summary>
+      <p>Standard Markdown (headings, emphasis, lists, quotes, code, links, images, horizontal rules) plus the GitHub-style extras: tables, checklists and strikethrough. HTML inside a document is shown, but documents can never run scripts.</p>
+    </details>
+
+    <h2 id="quicklook">Quick Look</h2>
+    <details open>
+      <summary>How do I preview a file in Finder?</summary>
+      <p>Select a Markdown file in Finder and press Space. Plainview's Quick Look extension shows it rendered, with the same layout as the app.</p>
+    </details>
+    <details>
+      <summary>Space shows plain text instead of the rendered document</summary>
+      <ol>
+        <li>Make sure Plainview is in your Applications folder, and open it once. macOS only finds the Quick Look extension after the app has been opened.</li>
+        <li>Check the extension is turned on. On macOS 15 or later: System Settings › General › Login Items &amp; Extensions, then click the info button next to <em>Quick Look</em> and turn on Plainview. On macOS 14: System Settings › Privacy &amp; Security › Extensions › Quick Look.</li>
+        <li>If another app also previews Markdown, macOS uses only one of them. Turn the other one off in the same place.</li>
+      </ol>
+    </details>
+    <details>
+      <summary>Images don't show in Quick Look</summary>
+      <p>Quick Look only lets an extension read the file being previewed, so images stored in other folders appear as a labeled placeholder. Open the document in Plainview to see them.</p>
+    </details>
+
+    <h2 id="reading">Reading</h2>
+    <details open>
+      <summary>How do I change the typeface, size or width?</summary>
+      <p>Everything is in the View menu:</p>
+      <ul>
+        <li><em>Font</em>: System Sans, System Serif, Georgia, Palatino or Charter.</li>
+        <li><em>Zoom In</em>, <em>Zoom Out</em> and <em>Actual Size</em> (<kbd>⌘+</kbd>, <kbd>⌘−</kbd>, <kbd>⌘0</kbd>).</li>
+        <li><em>Wider</em> and <em>Narrower</em> (<kbd>⌘]</kbd>, <kbd>⌘[</kbd>) set the line width.</li>
+        <li><em>Justify Text</em> (<kbd>⌘J</kbd>).</li>
+      </ul>
+      <p>Your choices apply to every window and are remembered next time.</p>
+    </details>
+    <details>
+      <summary>How does dark mode work?</summary>
+      <p>Plainview follows your Mac's light or dark appearance. View › <em>Dark Mode</em> (<kbd>⌘D</kbd>) keeps it dark even when your Mac is in light mode; turn it off again to go back to following the system.</p>
+    </details>
+    <details>
+      <summary>The document doesn't update when I save it</summary>
+      <p>Plainview watches the file and reloads it within a moment of every save, including from editors that save by replacing the file. If the file was moved or renamed, open it again from its new location.</p>
+    </details>
+    <details>
+      <summary>How do I search a document?</summary>
+      <p>Edit › <em>Find…</em> (<kbd>⌘F</kbd>) opens the find bar. <kbd>⌘G</kbd> and <kbd>⇧⌘G</kbd> move between matches, and Esc closes it.</p>
+    </details>
+
+    <h2 id="images">Images &amp; links</h2>
+    <details open>
+      <summary>"Some images are in …, which Plainview needs permission to read."</summary>
+      <p>macOS only lets Plainview read the files you open, not the folders around them. If your document shows images stored next to it, click <em>Allow Access…</em> in the bar at the top of the window and choose the folder (Plainview suggests the right one). The images appear right away, and Plainview remembers the folder for next time.</p>
+    </details>
+    <details>
+      <summary>Images from the web don't load</summary>
+      <p>Images linked with <code>https://</code> addresses load directly from the web, so they need an internet connection. Check that the address works in your browser.</p>
+    </details>
+    <details>
+      <summary>What happens when I click a link?</summary>
+      <ul>
+        <li>Links to headings in the same document, like <code>[Setup](#setup)</code>, scroll to that heading. They use the same anchor names as GitHub.</li>
+        <li>Links to other Markdown files open them in Plainview.</li>
+        <li>Web and email links open in your browser or mail app.</li>
+        <li>Links to PDFs, images and videos open them in their usual app. Any other file is shown in Finder rather than opened, so a link in a document can never run a program.</li>
+      </ul>
+    </details>
+
+    <h2 id="print">Printing &amp; PDF</h2>
+    <details open>
+      <summary>How do I print or save a PDF?</summary>
+      <p>File › <em>Print…</em> (<kbd>⌘P</kbd>) prints with your current typeface and text size, on the paper size set in File › <em>Page Setup…</em> (<kbd>⇧⌘P</kbd>). Page breaks fall between lines, never through them.</p>
+      <p>File › <em>Export as PDF…</em> saves a PDF with the same layout, in which links to websites, email addresses and headings stay clickable.</p>
+    </details>
+
+    <h2 id="shortcuts">Keyboard shortcuts</h2>
+    <table>
+      <thead><tr><th>Shortcut</th><th>Action</th></tr></thead>
+      <tbody>
+        <tr><td><kbd>⌘O</kbd></td><td>Open</td></tr>
+        <tr><td><kbd>⌘P</kbd></td><td>Print / Save as PDF</td></tr>
+        <tr><td><kbd>⇧⌘P</kbd></td><td>Page Setup</td></tr>
+        <tr><td><kbd>⌘F</kbd></td><td>Find in document</td></tr>
+        <tr><td><kbd>⌘G</kbd> / <kbd>⇧⌘G</kbd></td><td>Find next / previous</td></tr>
+        <tr><td><kbd>⌘+</kbd> / <kbd>⌘−</kbd></td><td>Zoom in / out</td></tr>
+        <tr><td><kbd>⌘0</kbd></td><td>Actual size</td></tr>
+        <tr><td><kbd>⌘]</kbd> / <kbd>⌘[</kbd></td><td>Wider / narrower</td></tr>
+        <tr><td><kbd>⌘J</kbd></td><td>Justify text</td></tr>
+        <tr><td><kbd>⌘D</kbd></td><td>Dark mode</td></tr>
+      </tbody>
+    </table>
+
+    <h2 id="contact">Contact</h2>
+    <p>Email <a href="mailto:contact@victorshammas.com?subject=Plainview%20support">contact@victorshammas.com</a>. It helps to include your macOS version and Plainview version (Plainview › About Plainview). If a particular document looks wrong, attaching it (or a small part of it that shows the problem) helps a lot.</p>
+    <p>Found a bug or have an idea? You can also open an issue on <a href="https://github.com/victor-shammas/plainview/issues">GitHub</a>.</p>
+    <p>Refunds for App Store purchases are handled by Apple at <a href="https://reportaproblem.apple.com">reportaproblem.apple.com</a>.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <nav aria-label="Footer"><a href="./">Home</a><a href="support.html">Support</a><a href="privacy.html">Privacy Policy</a><a href="https://github.com/victor-shammas/plainview">Source code</a><a href="mailto:contact@victorshammas.com">Contact</a></nav>
+    <p>Mac and Mac App Store are trademarks of Apple Inc. © 2026 Victor Shammas</p>
+  </div>
+</footer>
+</body>
+</html>

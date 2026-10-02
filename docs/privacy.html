@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy · Plainview</title>
+<meta name="description" content="Plainview privacy policy: no accounts, no servers, no analytics. Your documents and settings stay on your Mac.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="./"><img src="icon.png" alt="" width="30" height="30">Plainview</a>
+    <nav class="nav" aria-label="Main">
+      <a href="./" class="hide-sm">Home</a>
+      <a href="support.html">Support</a>
+      <a href="privacy.html" aria-current="page">Privacy</a>
+    </nav>
+  </div>
+</header>
+
+<main class="doc">
+  <div class="wrap narrow">
+    <h1>Privacy Policy</h1>
+    <p class="meta-line">Effective date: October 2, 2026</p>
+
+    <div class="tldr">
+      <strong>The short version</strong>
+      <ul>
+        <li>Plainview has no accounts, no servers, no analytics and no ads.</li>
+        <li>It reads the documents you open and shows them to you. They never leave your Mac.</li>
+        <li>The only network use is loading images that a document links to on the web.</li>
+        <li>I (the developer) never receive any of your data.</li>
+      </ul>
+    </div>
+
+    <p>This policy explains what the Plainview app for macOS ("Plainview", "the app") reads, what it stores, and what it never does. Plainview is made by Victor Shammas, an independent developer ("I", "me"). Its source code is <a href="https://github.com/victor-shammas/plainview">public</a>, so you can check every statement below.</p>
+
+    <h2>1. What Plainview reads</h2>
+    <p>Plainview runs in Apple's App Sandbox, so it can only open files you give it: by double-clicking them, dragging them onto the app, or choosing them in File › Open.</p>
+    <table class="stack">
+      <thead><tr><th>Source</th><th>What is read</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Documents you open</td>
+            <td data-label="Read">The Markdown or text file itself</td>
+            <td data-label="Why">To show it to you, and to reload it when it changes on disk.</td></tr>
+        <tr><td>Folders you allow for images</td>
+            <td data-label="Read">Images that your document refers to in that folder</td>
+            <td data-label="Why">To show images stored next to your document. Plainview asks first; nothing is read until you click <em>Allow Access…</em> and choose the folder.</td></tr>
+        <tr><td>Files previewed with Quick Look</td>
+            <td data-label="Read">The file you press Space on in Finder</td>
+            <td data-label="Why">To show the rendered preview.</td></tr>
+      </tbody>
+    </table>
+    <p>Plainview never changes your documents. It only writes files when you ask it to, with File › Export as PDF or Print › Save as PDF.</p>
+
+    <h2>2. What Plainview stores on your Mac</h2>
+    <ul>
+      <li><strong>Your reading settings:</strong> typeface, text size, line width, alignment, appearance and window size.</li>
+      <li><strong>The Recently Read list:</strong> up to 10 recent files, saved as macOS bookmarks so they can be reopened from the menu. File › Recently Read › <em>Clear Recent Files</em> empties it.</li>
+      <li><strong>Folders you allowed for images</strong>, saved as bookmarks so you don't have to allow them again.</li>
+    </ul>
+    <p>All of this is kept in Plainview's sandbox container on your Mac. None of it is sent anywhere.</p>
+
+    <h2>3. Network use</h2>
+    <p>Plainview connects to the internet only to load images that a document links to on the web, for example <code>![Map](https://example.com/map.png)</code>. Those requests go directly from your Mac to the server hosting the image, like any image in a web page, and that server can see your IP address. Plainview sends nothing to me or to any other service.</p>
+    <p>Documents can't run scripts in Plainview, and clicking a web link opens it in your browser, not in Plainview.</p>
+
+    <h2>4. What Plainview never does</h2>
+    <ul>
+      <li>No accounts or sign-in.</li>
+      <li>No analytics, telemetry, crash-reporting services, advertising or tracking SDKs.</li>
+      <li>No servers run by me. Nothing is uploaded to me or to any third party on my behalf.</li>
+      <li>No selling or sharing of data, because I don't have any of your data.</li>
+      <li>No tracking across apps or websites.</li>
+    </ul>
+
+    <h2>5. Apple</h2>
+    <p>You buy and download Plainview through the Mac App Store. Apple processes your purchase under <a href="https://www.apple.com/legal/privacy/">Apple's Privacy Policy</a>. Apple may share anonymous sales and, if you opt in to sharing with developers, crash statistics with me. These never include your documents.</p>
+
+    <h2>6. Removing your data</h2>
+    <ul>
+      <li>To clear the Recently Read list, use File › Recently Read › <em>Clear Recent Files</em>.</li>
+      <li>To remove everything, delete Plainview from Applications, then delete its container folder <code>~/Library/Containers/com.victorshammas.plainview</code> (macOS keeps this folder when you delete an app).</li>
+    </ul>
+
+    <h2>7. Children</h2>
+    <p>Plainview is rated 4+. It collects no personal information from anyone, including children.</p>
+
+    <h2>8. Changes to this policy</h2>
+    <p>If this policy changes, the new version will be posted on this page with a new effective date. If a change ever adds data collection, it will be announced in the app's release notes before it takes effect.</p>
+
+    <h2>9. Contact</h2>
+    <p>Questions about privacy? Email <a href="mailto:contact@victorshammas.com">contact@victorshammas.com</a>.</p>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <nav aria-label="Footer"><a href="./">Home</a><a href="support.html">Support</a><a href="privacy.html">Privacy Policy</a><a href="https://github.com/victor-shammas/plainview">Source code</a><a href="mailto:contact@victorshammas.com">Contact</a></nav>
+    <p>Mac and Mac App Store are trademarks of Apple Inc. © 2026 Victor Shammas</p>
+  </div>
+</footer>
+</body>
+</html>
