@@ -4,7 +4,7 @@ PRODUCT_NAME = Plainview
 PRODUCT_BUNDLE_IDENTIFIER = com.victorshammas.plainview
 MARKETING_VERSION = 2.0.0
 // Must increase with every App Store Connect upload.
-CURRENT_PROJECT_VERSION = 2
+CURRENT_PROJECT_VERSION = 3
 MACOSX_DEPLOYMENT_TARGET = 14.0
 
 // Signing. Xcode manages certificates and profiles for this team. The Team ID

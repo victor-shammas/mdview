@@ -245,7 +245,8 @@ struct PlainviewApp: App {
                 }
                 .keyboardShortcut("g", modifiers: [.command, .shift])
             }
-            CommandMenu("View") {
+            // Fill the standard View menu; CommandMenu("View") would add a second one.
+            CommandGroup(before: .toolbar) {
                 Button("Zoom In") { appState.zoomIn() }
                     .keyboardShortcut("+", modifiers: .command)
 
@@ -284,6 +285,8 @@ struct PlainviewApp: App {
                     set: { appState.appearance = $0 ? .dark : .auto }
                 ))
                 .keyboardShortcut("d", modifiers: .command)
+
+                Divider()
             }
         }
     }
